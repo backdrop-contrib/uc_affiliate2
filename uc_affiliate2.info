@@ -1,0 +1,5 @@
+; $Id$
+name = Affiliate2
+description = Tracks affiliate site orders and commissions.
+dependencies = uc_store uc_order
+package = Ubercart - extra

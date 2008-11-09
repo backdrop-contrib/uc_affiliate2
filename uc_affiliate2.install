@@ -1,0 +1,74 @@
+<?php
+// $Id$
+
+function uc_affiliate2_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      // which affiliate referred a user to the site
+      db_query("CREATE TABLE {uc_affiliate2_users} (
+        aid int unsigned NOT NULL,
+        uid int unsigned UNIQUE NOT NULL,
+        PRIMARY KEY (aid,uid)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      // where we count clicks, signups, etc.
+      db_query("CREATE TABLE {uc_affiliate2_counts} (
+        aid int unsigned NOT NULL,
+        clicks int unsigned NOT NULL,
+        users int unsigned NOT NULL,
+        orders int unsigned NOT NULL,
+        time int unsigned NOT NULL,
+        PRIMARY KEY (aid, time)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      // where we count clicks, signups, etc.
+      db_query("CREATE TABLE {uc_affiliate2_clicks} (
+        click_id mediumint(9) NOT NULL auto_increment,
+        aid int unsigned NOT NULL,
+        time int unsigned NOT NULL,
+        PRIMARY KEY (click_id)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      // where we track affiliate commissions
+      db_query("CREATE TABLE {uc_affiliate2_commission} (
+        commission_id bigint(20) NOT NULL auto_increment,
+        order_id bigint(20) default NULL,
+        aid bigint(20) default NULL,
+        commission double default NULL,
+        commission_notes varchar(255) default NULL,
+        PRIMARY KEY (commission_id)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      // where we track affiliate commission payments
+      db_query("CREATE TABLE {uc_affiliate2_paid} (
+        aid int unsigned NOT NULL,
+        date int unsigned NOT NULL,
+        amount double NOT NULL
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      // where we store product level comissions, if any
+      db_query("CREATE TABLE {uc_affiliate2_product_commission} (
+        nid mediumint(9) NOT NULL,
+        commission_structure longtext NOT NULL,
+        PRIMARY KEY  (nid)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */
+      ");
+      break;
+    
+    case 'pgsql':
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */ 
+function uc_affiliate2_uninstall() {
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_users}');
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_counts}');
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_clicks}');
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_commission}');
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_product_commission}');
+  db_query('DROP TABLE IF EXISTS {uc_affiliate2_paid}');
+}
