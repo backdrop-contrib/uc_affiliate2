@@ -1,20 +1,27 @@
 CHANGELOG for uc_affiliate2 module
 
-version 2008/11/09 [bojanz]
+Version 1.1
+***********
+2008/11/10 [bojanz]
+-- fixed a SQL Injection bug, reported by Ryan.
+
+Version 1.0
+***********
+2008/11/09 [bojanz]
 -- updated the install code to properly create/remove all the tables used
 -- renamed module from uc_affiliate to uc_affiliate2 to allow submission to drupal.org
 -- Fixed a bug in the link generation, the url was wrong (affiliates/ instead of affiliate/)
 
-version 2008/10/27 [davegan]
+2008/10/27 [davegan]
 -- fixed a bug that allowed users to adjust their own commission percentages (yikes!). 
 -- cleaned up some misspellings and text. 
 -- if the affiliate depth is set to 1, now affiliates do not see "downline" and "upline" in their affiliate center.
 -- added a feature that allows you to set commission for each product. If it's set, it'll override the store wide commissions for that product.
 
-version 2008/10/01 [bojanz]
+2008/10/01 [bojanz]
 --  fixed a bug where the commission was only paid for the first item in the cart. 
 
-version 2008/09/01 [bojanz]
+2008/09/01 [bojanz]
 -- user based tracking
 -- role based tracking
 -- ability to create affiliate links (both text and image)
@@ -24,7 +31,7 @@ version 2008/09/01 [bojanz]
 -- option to set the amount of time the cookie is valid for (e.g. 3 months)
 -- easy customer dashboard (with div's so they're themable)
 
-version 2008/01/08 [detour]
+2008/01/08 [detour]
 -- added monthly report of sales/commissions per affiliate in admin settings
 -- reworked displayed data on admin's manage affiliate page
 -- added uc_affiliates_paid table to track commission amounts paid
@@ -32,7 +39,7 @@ version 2008/01/08 [detour]
 -- added number of order statistics to uc_affiliate_counts
 -- reworked displayed data on user's commissions page
 
-version 2007/12/21 [detour]
+2007/12/21 [detour]
 -- added validation for bogus site redirection URL
 -- reworked SQL code and displayed data on affiliate management page
 -- reworked uc_affiliate_add_count to avoid recursion
@@ -44,5 +51,5 @@ version 2007/12/21 [detour]
 -- removed non-functional code from get_affiliate_commission_percentage
 -- removed hard-coded product type filter
 
-version 2007/11/27 [jhuckabee]
+2007/11/27 [jhuckabee]
 -- initial version

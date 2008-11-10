@@ -377,11 +377,13 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   }
 
   if(count($show) > 0) {// are we filtering the query?
-    $show = join(',', $show);
-    $where = ' and node.nid IN (' . $show . ')';
+    $placeholders = str_repeat('%d, ', count($show));
+    $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
+    
+    $where = ' and node.nid IN (' . $placeholders . ')';
   }
 
-  $result = db_query("select node.nid from {uc_products} uc_products inner join {node} node on uc_products.nid = node.nid where node.status = 1 $where");
+  $result = db_query("select node.nid from {uc_products} uc_products inner join {node} node on uc_products.nid = node.nid where node.status = 1 $where", $show);
 
   if(!db_num_rows($result) && !$where) {
     return;
