@@ -379,7 +379,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   if(count($show) > 0) {// are we filtering the query?
     $placeholders = str_repeat('%d, ', count($show));
     $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
-    
+
     $where = ' and node.nid IN (' . $placeholders . ')';
   }
 
@@ -1399,11 +1399,8 @@ function _uc_affiliate2_get_subdomain() {
   if (count($host_array) <= 2) {
     return '';
   }
-  else {
-    array_pop($host_array);
-    array_pop($host_array);
-    return implode('.', $host_array);
-  }
+
+  return $host_array[0];
 }
 
 function _uc_affiliate2_get_domain() {

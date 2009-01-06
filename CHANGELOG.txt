@@ -3,7 +3,7 @@ CHANGELOG for uc_affiliate2 module
 Version 1.1
 ***********
 2008/11/10 [bojanz]
--- fixed a SQL Injection bug, reported by Ryan.
+-- fixed an SQL Injection bug, reported by Ryan.
 
 Version 1.0
 ***********
