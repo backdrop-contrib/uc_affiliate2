@@ -498,6 +498,12 @@ function uc_affiliate2_admin_settings() {
     '#description' => t('When an invalid username is used as a subdomain, the user will be redirected to this URL.'),
     '#default_value' => variable_get('affiliate_invalid_redirect', '')
   );
+  $form['affiliate_disable_subdomain'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable affiliate subdomain checking'),
+    '#description' => t("By default, this module will record affiliate actions if customers visit the site through an affiliate subdomain, like john.thissite.com.  If you don't want to use affiliate subdomains, either because you prefer to use the ?a=uid method for tacking or because your site is located at a subdomain itself, check this box."),
+    '#default_value' => variable_get('affiliate_disable_subdomain', 0),
+  );
 
   $roles = user_roles(FALSE, 'act as affiliate');
 
@@ -1418,9 +1424,11 @@ function _uc_affiliate2_get_domain() {
 function uc_affiliate2_click($username = '') {
   // See if the URL references an affiliate in the subdomain
 
-  $subdomain = _uc_affiliate2_get_subdomain();
-  if ($subdomain && $subdomain != 'www') {
+  if(!variable_get('affiliate_disable_subdomain', 0)) {
+    $subdomain = _uc_affiliate2_get_subdomain();
+  }
 
+  if ($subdomain && $subdomain != 'www') {
     // Lookup the affiliate's account
     $account = user_load(array('name' => $subdomain));
     if ($account && !_uc_affiliate2_clicked($account)) {
@@ -1464,7 +1472,7 @@ function uc_affiliate2_click($username = '') {
       }
   } else if($_REQUEST['a']){
     // Lookup the affiliate's account
-    $account = user_load(array('uid' => $aid));
+    $account = user_load(array('uid' => $_REQUEST['a']));
 
     _uc_affiliate2_clicked($account);
 
