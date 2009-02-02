@@ -195,17 +195,15 @@ function uc_affiliate2_product_commission($nid) {
 }
 
 function uc_affiliate2_product_commission_submit($form, $form_values) {
-
-	$nid = $form_values['nid'];
-	$commission_structure = $form_values['affiliate_commission_structure_product'];
+  $nid = $form_values['nid'];
+  $commission_structure = $form_values['affiliate_commission_structure_product'];
 
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
   if ($result && $result->commission_structure) {
     db_query('UPDATE {uc_affiliate2_product_commission} SET commission_structure="%s" WHERE nid=%d', serialize($commission_structure), $nid);
   } else {
    	db_query('INSERT {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, "%s")', $nid, serialize($commission_structure));
- 	}
-
+  }
 }
 
 function uc_affiliate2_links() {
@@ -216,7 +214,7 @@ function uc_affiliate2_links() {
   $products = array('all' => 'Show All');
   $products += _uc_affiliate2_get_products();
 
-  if(count($products) > 1) {
+  if (count($products) > 1) {
     $output .= '<b> Export product feed </b>';
     $output .= '<br />Choose the products which you want included in your feed. <br />';
     $output .= 'All product links will have your affiliate id included. <br /><br /> ';
@@ -296,22 +294,22 @@ function _uc_affiliate2_product_form_submit($form, &$form_state) {
   $show_these = array();
 
   // build the filter array for _uc_affiliate2_get_products from the form checkboxes
-  foreach($form_state['products'] as $product_id => $status) {
-    if($status !== 0) {
+  foreach ($form_state['products'] as $product_id => $status) {
+    if ($status !== 0) {
       $show_these[] = $product_id;
     }
   }
 
-  if(in_array('all', $show_these)) {
+  if (in_array('all', $show_these)) {
       $show_these = array('all'); // we don't need anything else
   }
 
-  if(count($show_these) > 0) {
-    if($form_state['export_type'] == 'csv') {
+  if (count($show_these) > 0) {
+    if ($form_state['export_type'] == 'csv') {
       drupal_set_header("Content-Type: application/csv; charset=\"utf-8\"\n");
       drupal_set_header('Content-Disposition: attachment; filename="export.csv"');
 
-      if($show_these[0] == 'all') {
+      if ($show_these[0] == 'all') {
         print _uc_affiliate2_get_products('csv');
       }
       else {
@@ -348,7 +346,7 @@ function _uc_affiliate2_display_banners($op) {
       $banners = explode('<', $banners);
       unset($banners[0]);
 
-      foreach($banners as $banner) {
+      foreach ($banners as $banner) {
         $banner = '<' . $banner;
         $banner_link = l($banner, 'affiliate/' . $user->name, array(), null, null, true, true);
 
@@ -363,7 +361,7 @@ function _uc_affiliate2_display_banners($op) {
 function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   global $user;
 
-  if($mode == 'html') {
+  if ($mode == 'html') {
     $template = variable_get('affiliate_product_html_template', '<div id="prodcontain"><a href="[LINK]"><img src="[IMG]"></a><br /><div id="description">description:</div>[DESCRIPTION]<br /><div id="price">[PRICE]</div><br /></div>');
   }
 
@@ -372,11 +370,11 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   $products = array();
   $output = '';
 
-  if($mode == 'csv') {
+  if ($mode == 'csv') {
     $output = "Product Name, Price, Description, Image Link, Link\n";
   }
 
-  if(count($show) > 0) {// are we filtering the query?
+  if (count($show) > 0) {// are we filtering the query?
     $placeholders = str_repeat('%d, ', count($show));
     $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
 
@@ -385,7 +383,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
   $result = db_query("select node.nid from {uc_products} uc_products inner join {node} node on uc_products.nid = node.nid where node.status = 1 $where", $show);
 
-  if(!db_num_rows($result) && !$where) {
+  if (!db_num_rows($result) && !$where) {
     return;
   }
 
@@ -406,7 +404,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     $product->path = (!$product->path) ? 'node/' . $product->nid : $product->path;
     $link = $GLOBALS['base_url'] .'/affiliate/'. $user->name . '/'. $product->path;
 
-    if(empty($product->field_image_cache[0]['filepath'])) {
+    if (empty($product->field_image_cache[0]['filepath'])) {
       $image = 'N/A';
     }
     else {
@@ -438,7 +436,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     }
   }
 
-  if($mode == 'csv') {
+  if ($mode == 'csv') {
     return $output;
   }
 
@@ -855,24 +853,23 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
       }
       break;
     case 'form':
+      if (user_access('adjust user commissions')) {
+        $form['commission_settings'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Affiliate Commission Settings'),
+          '#collapsible' => TRUE,
+          '#weight' => 10,
+        );
 
-	    if (user_access('adjust user commissions')) {
-	      $form['commission_settings'] = array(
-	        '#type' => 'fieldset',
-	        '#title' => t('Affiliate Commission Settings'),
-	        '#collapsible' => TRUE,
-	        '#weight' => 10,
-	      );
+        $form['commission_settings']['commission'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Commission'),
+          '#default_value' => $edit['commission'],
+          '#description' => t('The commission percentage for this user (number only). Leave blank to use either product or global commissions.')
+        );
+      }
 
-	      $form['commission_settings']['commission'] = array(
-	        '#type' => 'textfield',
-	        '#title' => t('Commission'),
-	        '#default_value' => $edit['commission'],
-	        '#description' => t('The commission percentage for this user (number only). Leave blank to use either product or global commissions.')
-	      );
-    	}
-
-    	return $form;
+      return $form;
 
     break;
   }
@@ -1448,7 +1445,7 @@ function uc_affiliate2_click($username = '') {
 
       if (_uc_affiliate2_clicked($account)) { // valid, redirect
         $num_args = func_num_args();
-        if($num_args > 1) {
+        if ($num_args > 1) {
           $args = func_get_args();
           unset($args[0]);
           $path = join('/', $args);
@@ -1504,7 +1501,7 @@ function _uc_affiliate2_clicked($account) {
     // Do we need to set the cookie? For how long?
     $set_cookie = variable_get('affiliate_set_cookie_' . $rid, 0);
 
-    if($set_cookie) {
+    if ($set_cookie) {
       $cookie_lifetime = variable_get('affiliate_cookie_lifetime_' . $rid, '1 year');
       $cookie_lifetime = strtotime('+ ' . $cookie_lifetime);
 
@@ -1543,7 +1540,7 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
 
   $account = user_load(array('uid' => $_SESSION['affiliate']));
 
-  if($account->commission) {
+  if ($account->commission) {
     return $account->commission / 100; // we have a commission percentage defined specially for this affilate
   }
 
@@ -1551,18 +1548,18 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
 
   //check if this product has commission set for it
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
-	$product_commission_structure = unserialize($result->commission_structure);
-	if ($product_commission_structure) {
-  	$default_structure = $product_commission_structure;
-	} else {
-  	$default_structure = variable_get('affiliate_commission_structure', '5,3,2,2,1');
-	}
+  $product_commission_structure = unserialize($result->commission_structure);
+  if ($product_commission_structure) {
+    $default_structure = $product_commission_structure;
+  } else {
+    $default_structure = variable_get('affiliate_commission_structure', '5,3,2,2,1');
+  }
 
-  if(!empty($_SESSION['affiliate_cookie_timestamp'])) {
+  if (!empty($_SESSION['affiliate_cookie_timestamp'])) {
     $switch_after = variable_get('affiliate_commission_' . $_SESSION['affiliate_rid'] . '_switch_after', '5,3,2,2,1');
     $now = time();
 
-    if($now - $_SESSION['affiliate_cookie_timestamp'] >= $switch_after) {
+    if ($now - $_SESSION['affiliate_cookie_timestamp'] >= $switch_after) {
       $structure = variable_get('affiliate_commission_structure_' . $_SESSION['affiliate_rid'], '5,3,2,2,1');
     }
     else {
