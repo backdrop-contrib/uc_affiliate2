@@ -28,7 +28,7 @@ function uc_affiliate2_help($section = '') {
  * Implementation of hook_perm()
  */
 function uc_affiliate2_perm() {
-  return array('act as affiliate', 'adjust user commissions');
+  return array('act as affiliate', 'adjust user commissions', 'administer affiliates');
 }
 
 /**
