@@ -1493,10 +1493,7 @@ function _uc_affiliate2_clicked($account) {
     }
 
     // Get the affiliate role (only the last one)
-    $roles = $account->roles;
-    krsort($roles);
-    $rids = array_keys($roles);
-    $rid = $rids[0];
+    $rid = _uc_affiliate2_get_user_rid($account->roles);
 
     // Do we need to set the cookie? For how long?
     $set_cookie = variable_get('affiliate_set_cookie_' . $rid, 0);
@@ -1516,6 +1513,15 @@ function _uc_affiliate2_clicked($account) {
   }
 
   return false;
+}
+
+function _uc_affiliate2_get_user_rid($user_roles) {
+  $roles = user_roles(FALSE, 'act as affiliate');
+  $roles = array_intersect_assoc($roles, $user_roles);
+  $rids = array_keys($roles);
+  $rid = $rids[0];
+
+  return $rid;
 }
 
 /**
