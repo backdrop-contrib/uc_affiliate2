@@ -228,9 +228,9 @@ function uc_affiliate2_links() {
 // This function exports the products in html
 function uc_affiliate2_links_export() {
   $ids = func_get_args();
-  $output = '<br /><img src="' . $GLOBALS['base_url'] . '/misc/watchdog-error.png' . '" /> is the placeholder image in case none is present. <br />';
+  $output = '<br /><img src="'. $GLOBALS['base_url'] .'/misc/watchdog-error.png'.'" /> is the placeholder image in case none is present. <br />';
 
-  if($ids[0] == 'all') {
+  if ($ids[0] == 'all') {
     $products = _uc_affiliate2_get_products('html');
   }
   else {
@@ -249,16 +249,16 @@ function _uc_affiliate2_display_products($op, $products='') {
 
   switch ($op) {
     case 'fields':
-      $fields[] = array('name' => 'product_title', 'title' => t('Product Title'), 'weight' => 0, 'enabled' => true);
-      $fields[] = array('name' => 'preview', 'title' => t('Preview'), 'weight' => 1, 'enabled' => true);
-      $fields[] = array('name' => 'code', 'title' => t('Code'), 'weight' => 2, 'enabled' => true);
+      $fields[] = array('name' => 'product_title', 'title' => t('Product Title'), 'weight' => 0, 'enabled' => TRUE);
+      $fields[] = array('name' => 'preview', 'title' => t('Preview'), 'weight' => 1, 'enabled' => TRUE);
+      $fields[] = array('name' => 'code', 'title' => t('Code'), 'weight' => 2, 'enabled' => TRUE);
       return $fields;
 
     case 'data':
       foreach($products as $key => $product) {
         $data['product_title'][] = $key;
         $data['preview'][] = $product;
-        $data['code'][] = '<textarea cols="60" rows="4">' . $product . '</textarea>';
+        $data['code'][] = '<textarea cols="60" rows="4">'. $product .'</textarea>';
       }
 
       return $data;
@@ -266,7 +266,7 @@ function _uc_affiliate2_display_products($op, $products='') {
 }
 
 function _uc_affiliate2_product_form($products) {
-  drupal_add_js(drupal_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.js');
+  drupal_add_js(drupal_get_path('module', 'uc_affiliate2') .'/uc_affiliate2.js');
 
   $form['products'] = array(
     '#type' => 'checkboxes',
@@ -347,11 +347,11 @@ function _uc_affiliate2_display_banners($op) {
       unset($banners[0]);
 
       foreach ($banners as $banner) {
-        $banner = '<' . $banner;
-        $banner_link = l($banner, 'affiliate/' . $user->name, array(), null, null, true, true);
+        $banner = '<'. $banner;
+        $banner_link = l($banner, 'affiliate/'. $user->name, array(), NULL, NULL, TRUE, TRUE);
 
         $data['banner_preview'][] = $banner;
-        $data['banner_code'][] = '<textarea cols="45">' . $banner_link . '</textarea>';
+        $data['banner_code'][] = '<textarea cols="45">'. $banner_link .'</textarea>';
       }
 
       return $data;
@@ -378,7 +378,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     $placeholders = str_repeat('%d, ', count($show));
     $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
 
-    $where = ' and node.nid IN (' . $placeholders . ')';
+    $where = ' and node.nid IN ('. $placeholders .')';
   }
 
   $result = db_query("select node.nid from {uc_products} uc_products inner join {node} node on uc_products.nid = node.nid where node.status = 1 $where", $show);
@@ -387,7 +387,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     return;
   }
 
-  while ($node = db_fetch_object($result)){
+  while ($node = db_fetch_object($result)) {
     $product = node_load($node->nid);
 
     // Grab terms for products, and the manufacturer
@@ -401,14 +401,14 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
      }
     }
 
-    $product->path = (!$product->path) ? 'node/' . $product->nid : $product->path;
-    $link = $GLOBALS['base_url'] .'/affiliate/'. $user->name . '/'. $product->path;
+    $product->path = (!$product->path) ? 'node/'. $product->nid : $product->path;
+    $link = $GLOBALS['base_url'] .'/affiliate/'. $user->name .'/'. $product->path;
 
     if (empty($product->field_image_cache[0]['filepath'])) {
       $image = 'N/A';
     }
     else {
-      $image = $GLOBALS['base_url'] .'/' . file_directory_path() . '/'. rawurlencode(basename($product->field_image_cache[0]['filepath']));
+      $image = $GLOBALS['base_url'] .'/'. file_directory_path() .'/'. rawurlencode(basename($product->field_image_cache[0]['filepath']));
     }
 
     $title = check_plain($product->title);
@@ -416,13 +416,13 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
     switch($mode) {
       case 'csv':
-        $output .= $title . ',';
-        $output .= $product->sell_price . ',';
-        $output .= '"' . $description . '",';
+        $output .= $title .',';
+        $output .= $product->sell_price .',';
+        $output .= '"'. $description .'",';
 
-        $output .= $image . ',';
+        $output .= $image .',';
 
-        $output .=  $link . "\n";
+        $output .=  $link ."\n";
       break;
 
       case "form":
@@ -430,7 +430,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
       break;
 
       case "html":
-        $image = ($image == 'N/A') ? $GLOBALS['base_url'] . '/misc/watchdog-error.png' : $image;
+        $image = ($image == 'N/A') ? $GLOBALS['base_url'] .'/misc/watchdog-error.png' : $image;
         $products[$title] = str_replace(array('[LINK]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $image, $description, $product->sell_price), $template);
       break;
     }
@@ -519,23 +519,23 @@ function uc_affiliate2_admin_settings() {
       '#default_value' => variable_get('affiliate_commission_structure_'. $rid, '5,3,2,2,1'),
       '#size' => 10
     );
-    $form['affiliate_settings_role_'. $rid]['affiliate_comission_' . $rid . '_switch_after'] = array(
+    $form['affiliate_settings_role_'. $rid]['affiliate_comission_'. $rid .'_switch_after'] = array(
       '#type' => 'textfield',
       '#title' => t('Switch to comission settings per role after'),
       '#description' => t('Time after which the per role comission structure settings will be used, instead of the default ones. Strtotime syntax.'),
-      '#default_value' => variable_get('affiliate_comission_' . $rid . '_switch_after', '2 days'),
+      '#default_value' => variable_get('affiliate_comission_'. $rid .'_switch_after', '2 days'),
      );
-    $form['affiliate_settings_role_'. $rid]['affiliate_set_cookie_' . $rid] = array(
+    $form['affiliate_settings_role_'. $rid]['affiliate_set_cookie_'. $rid] = array(
       '#type' => 'checkbox',
       '#title' => t('Set the affiliate cookie for the visiting user.'),
       '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
-      '#default_value' => variable_get('affiliate_set_cookie_' . $rid, 0),
+      '#default_value' => variable_get('affiliate_set_cookie_'. $rid, 0),
     );
-    $form['affiliate_settings_role_'. $rid]['affiliate_cookie_lifetime_' . $rid] = array(
+    $form['affiliate_settings_role_'. $rid]['affiliate_cookie_lifetime_'. $rid] = array(
       '#type' => 'textfield',
       '#title' => t('Cookie Lifetime'),
       '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
-      '#default_value' => variable_get('affiliate_cookie_lifetime_' . $rid, '1 year'),
+      '#default_value' => variable_get('affiliate_cookie_lifetime_'. $rid, '1 year'),
     );
   }
 
@@ -544,14 +544,14 @@ function uc_affiliate2_admin_settings() {
 
 function uc_affiliate2_admin_settings_validate($form_id, $form_values) {
   $url = $form_values['affiliate_invalid_redirect'];
-  if ($url != check_url($url) || strpos($url, '://')===false) {
+  if ($url != check_url($url) || strpos($url, '://')===FALSE) {
     form_set_error('affiliate_invalid_redirect', t('Please enter a valid URL.'));
   }
 
   $roles = user_roles(FALSE, 'act as affiliate');
   foreach ($roles as $rid => $role) {
-    if (!strtotime($form_values['affiliate_cookie_lifetime_' . $rid])) {
-      form_set_error('affiliate_cookie_lifetime_' . $rid, t('Invalid strtotime syntax.'));
+    if (!strtotime($form_values['affiliate_cookie_lifetime_'. $rid])) {
+      form_set_error('affiliate_cookie_lifetime_'. $rid, t('Invalid strtotime syntax.'));
     }
   }
 }
@@ -595,7 +595,7 @@ function uc_affiliate2_admin_manage() {
     );
   }
 
-  $output = "<p>" . t("Click on an affiliate user to view their monthly sales and commissions.");
+  $output = "<p>". t("Click on an affiliate user to view their monthly sales and commissions.");
   $output .= theme('table', $header, $rows);
   $output .= theme('pager', NULL, 50, 0);
   return $output;
@@ -631,7 +631,7 @@ function uc_affiliate2_admin_users($uid) {
   foreach ($sumsales as $date => $sales) {
     // load current amount paid
     $amt = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
-    if ($amt===false) {
+    if ($amt===FALSE) {
       $amt = 0;
     }
     $amt = uc_currency_format($amt);
@@ -673,7 +673,7 @@ function uc_affiliate2_admin_users($uid) {
     );
   }
 
-  $output = "<p>" . t("Displaying affiliate sales and commissions for "). theme('username', $user) .".";
+  $output = "<p>". t("Displaying affiliate sales and commissions for ") . theme('username', $user) .".";
   $output .= theme('table', $header, $rows);
   return $output;
 }
@@ -704,7 +704,7 @@ function uc_affiliate2_admin_users_paid_submit($form_id, $form_values, $uid, $da
   }
 
   $rec = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
-  if ($rec===false) {
+  if ($rec===FALSE) {
     db_query('INSERT {uc_affiliate2_paid} (aid, date, amount) VALUES (%d, %d, %f)', $uid, $date, $amt);
   }
   else {
@@ -759,7 +759,7 @@ function uc_affiliate2_monthly_report() {
   foreach ($sumsales as $uid => $sales) {
     // load current amount paid
     $amt = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $dateb));
-    if ($amt===false) {
+    if ($amt===FALSE) {
       $amt = 0;
     }
     $amt = uc_currency_format($amt);
@@ -803,9 +803,9 @@ function uc_affiliate2_monthly_report() {
     );
   }
 
-  $output = "<p>" . t("Displaying affiliate sales and commissions for "). format_date($dateb, 'custom', 'M Y') .". ";
-  $output .= t("Show "). l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $dateb-1)));
-  $output .= t(" or "). l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $datee))) .'.';
+  $output = "<p>". t("Displaying affiliate sales and commissions for ") . format_date($dateb, 'custom', 'M Y') .".";
+  $output .= t("Show ") . l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $dateb-1)));
+  $output .= t(" or ") . l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $datee))) .'.';
   $output .= theme('table', $header, $rows);
   return $output;
 }
@@ -846,7 +846,7 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
     case 'view':
       if (user_access('act as affiliate', $user)) {
         $items['affiliate'] = array(
-          'value' => t('Manage your business '). l(t('here'), "user/{$user->uid}/affiliate"),
+          'value' => t('Manage your business ') . l(t('here'), "user/{$user->uid}/affiliate"),
           'class' => 'affiliate'
         );
         return array(t('Affiliates') => $items);
@@ -893,7 +893,7 @@ function uc_affiliate2_dashboard() {
   $dates['start3'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
   $dates['end3'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates['start3'] . ' AND ' . $dates['end3'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start3'] .' AND '. $dates['end3'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['today'] = ($count) ? $count['cnt'] : 0;
@@ -904,7 +904,7 @@ function uc_affiliate2_dashboard() {
   $dates['start2'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
   $dates['end2'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates['start2'] . ' AND ' . $dates['end2'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start2'] .' AND '. $dates['end2'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['7days'] = ($count) ? $count['cnt'] : 0;
@@ -915,25 +915,25 @@ function uc_affiliate2_dashboard() {
   $dates['start1'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
   $dates['end1'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates['start1'] . ' AND ' . $dates['end1'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start1'] .' AND '. $dates['end1'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['365days'] = ($count) ? $count['cnt'] : 0;
 
   // get today's clicks
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates['start3'] . " AND " . $dates['end3'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start3'] ." AND ". $dates['end3'] ." GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['today'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last 7 days
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates['start2'] . " AND " . $dates['end2'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start2'] ." AND ". $dates['end2'] ." GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['7days'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last year
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates['start1'] . " AND " . $dates['end1'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start1'] ." AND ". $dates['end1'] ." GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['365days'] = ($count) ? $count['clicks'] : 0;
@@ -944,36 +944,36 @@ function uc_affiliate2_dashboard() {
 
   $output .= '<div id=”affiliate-sales-header”><h2>Commission History</h2> <br />';
 
-  $output .= 'Sales Today: ' . $commissions['today']  . ' <br />
-              Sales last 7 Days: '  . $commissions['7days'] . ' <br />
-              Last 365 Days: ' . $commissions['365days'] . ' <br /><br />';
+  $output .= 'Sales Today: '. $commissions['today']  .' <br />
+              Sales last 7 Days: '  . $commissions['7days'] .' <br />
+              Last 365 Days: '. $commissions['365days'] .' <br /><br />';
 
   $commissions_url = join('/', array('user', $account->uid, 'affiliate', 'commissions'));
-  $output .= l('Click here for more reports.', $commissions_url, array(), null, null, true, false);
+  $output .= l('Click here for more reports.', $commissions_url, array(), NULL, NULL, TRUE, FALSE);
 
   $output .= '</div>';
 
   $output .= '<br /><div id=”affiliate-sales-click-count”><h2>Click Count</h2> <br />';
 
-  $output .= "Today's Clicks: " . $clicks['today'] . "<br />
-              Last 7 Days: " . $clicks['7days'] . "<br />
-              Last 365 Days: " . $clicks['365days'] . "<br /><br />";
+  $output .= "Today's Clicks: ". $clicks['today'] ."<br />
+              Last 7 Days: ". $clicks['7days'] ."<br />
+              Last 365 Days: ". $clicks['365days'] ."<br /><br />";
 
   $clicks_url = join('/', array('user', $account->uid, 'affiliate', 'clicks'));
-  $output .= l('Click here for customized click reporting.', $clicks_url, array(), null, null, true, false);
+  $output .= l('Click here for customized click reporting.', $clicks_url, array(), NULL, NULL, TRUE, FALSE);
 
   $output .= '</div>';
 
-  $output .= '<br /><div id=”affiliate-links-header”><h2>' . t('Affiliate Links') . '</h2><br />';
+  $output .= '<br /><div id=”affiliate-links-header”><h2>'. t('Affiliate Links') .'</h2><br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, 'affiliate/' . $account->name, array(), null, null, true, true);
-  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">' . $text_link . '</textarea>';
+  $text_link = l($text_link, 'affiliate/'. $account->name, array(), NULL, NULL, TRUE, TRUE);
+  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
-  $output .= tapir_get_table('_uc_affiliate2_display_banners', $null);
+  $output .= tapir_get_table('_uc_affiliate2_display_banners', $NULL);
 
   $links_url = join('/', array('user', $account->uid, 'affiliate', 'links'));
-  $output .= l('Click here for product links.', $links_url, array(), null, null, true, false);
+  $output .= l('Click here for product links.', $links_url, array(), NULL, NULL, TRUE, FALSE);
 
   $output .= '</div>';
 
@@ -1000,7 +1000,7 @@ function uc_affiliate2_commissions() {
 
   // Create sql to affiliate's commissions
   $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates['start'] . ' AND ' . $dates['end'];
+  $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
   $result = db_query($sql);
 
   $total_sales = 0;
@@ -1042,7 +1042,7 @@ function uc_affiliate2_clicks() {
 
   // Create sql to display level of affiliate specified
   $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates['start'] . " AND " . $dates['end'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'] ." GROUP BY click_date";
 
   $sql .= tablesort_sql($header);
   $result = db_query($sql);
@@ -1095,7 +1095,7 @@ function uc_affiliate2_downline($level = 1) {
     $sql .= "INNER JOIN {users} u$next ON au$i.aid = u$next.uid ";
   }
   $sql .= "LEFT OUTER JOIN (SELECT au.aid, COUNT(au.uid) as user_count FROM {uc_affiliate2_users} au GROUP BY au.aid) uc on uc.aid = u1.uid ";
-  $sql .= "WHERE u$next.uid = " . $account->uid;
+  $sql .= "WHERE u$next.uid = ". $account->uid;
 
   $sql .= tablesort_sql($header);
   $result = pager_query($sql, 25);
@@ -1117,12 +1117,12 @@ function uc_affiliate2_downline($level = 1) {
   $output = '<ul class="tabs secondary">';
   for ($i=1; $i<=variable_get('affiliate_hierarchy_depth', 5); $i++) {
     $output .= ($i == $level ? '<li class="active">' : '<li>');
-    $output .= l(t("Level") . " " . $i, 'user/' . $account->uid . '/affiliate/downline/' . $i) . "</li>";
+    $output .= l(t("Level") ." ". $i, 'user/'. $account->uid .'/affiliate/downline/'. $i) ."</li>";
   }
   $output .= "</ul>";
 
   global $pager_total_items;
-  $output .= '<h2>' . t('Total Level !level, Customers: !customers', array('!level' => $level, '!customers' => $pager_total_items[0])) . '</h2>';
+  $output .= '<h2>'. t('Total Level !level, Customers: !customers', array('!level' => $level, '!customers' => $pager_total_items[0])) .'</h2>';
   $output .= theme('table', $header, $rows);
   $output .= theme('pager', NULL, 50, 0);
   return $output;
@@ -1150,10 +1150,10 @@ function uc_affiliate2_upline() {
   $rows = array();
   $next_uid = $account->uid;
   for ($i=1; $i<=$level; $i++) {
-    $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, uc.user_count, " . $i . " AS level ";
+    $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, uc.user_count, ". $i ." AS level ";
     $sql .= "FROM {users} u INNER JOIN {uc_affiliate2_users} au ON au.aid = u.uid ";
     $sql .= "LEFT OUTER JOIN (SELECT au2.aid, COUNT(au2.uid) as user_count FROM {uc_affiliate2_users} au2 GROUP BY au2.aid) uc on uc.aid = u.uid ";
-    $sql .= "WHERE au.uid = " . $next_uid;
+    $sql .= "WHERE au.uid = ". $next_uid;
 
     // create the data rows for our table
     $result = db_query($sql);
@@ -1170,11 +1170,11 @@ function uc_affiliate2_upline() {
     }
   }
 
-  if(count($rows) > 0) {
+  if (count($rows) > 0) {
     $output = theme('table', $header, $rows);
   }
   else {
-    $output = "<p>" . t("You are a top level affiliate.  There are no affiliates in your upline.") . "</p>";
+    $output = "<p>". t("You are a top level affiliate.  There are no affiliates in your upline.") ."</p>";
   }
   return $output;
 }
@@ -1250,7 +1250,7 @@ function uc_affiliate2_time_selection_form($method='') {
   $form = array();
   $form['range_display'] = array(
     '#prefix' => '<p><strong>',
-    '#value' => t('Currently Displaying: '). date('Y-n-j', $dt_first) .t(' through '). date('Y-n-j', $dt_last),
+    '#value' => t('Currently Displaying: ') . date('Y-n-j', $dt_first) .t(' through ') . date('Y-n-j', $dt_last),
     '#suffix' => '</strong></p>'
   );
   $form['time_selector'] = array(
@@ -1421,7 +1421,7 @@ function _uc_affiliate2_get_domain() {
 function uc_affiliate2_click($username = '') {
   // See if the URL references an affiliate in the subdomain
 
-  if(!variable_get('affiliate_disable_subdomain', 0)) {
+  if (!variable_get('affiliate_disable_subdomain', 0)) {
     $subdomain = _uc_affiliate2_get_subdomain();
   }
 
@@ -1440,7 +1440,7 @@ function uc_affiliate2_click($username = '') {
       }
     }
 
-  } else if($username) {
+  } else if ($username) {
       $account = user_load(array('name' => $username));
 
       if (_uc_affiliate2_clicked($account)) { // valid, redirect
@@ -1467,13 +1467,13 @@ function uc_affiliate2_click($username = '') {
           drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
         }
       }
-  } else if($_REQUEST['a']){
+  } else if ($_REQUEST['a']) {
     // Lookup the affiliate's account
     $account = user_load(array('uid' => $_REQUEST['a']));
 
     _uc_affiliate2_clicked($account);
 
-  } else if($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
+  } else if ($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
     // Lookup the affiliate's account
     $account = user_load(array('uid' => $_COOKIE['affiliate']['uid']));
     $_SESSION['affiliate'] = $account->uid;
@@ -1496,23 +1496,23 @@ function _uc_affiliate2_clicked($account) {
     $rid = _uc_affiliate2_get_user_rid($account->roles);
 
     // Do we need to set the cookie? For how long?
-    $set_cookie = variable_get('affiliate_set_cookie_' . $rid, 0);
+    $set_cookie = variable_get('affiliate_set_cookie_'. $rid, 0);
 
     if ($set_cookie) {
-      $cookie_lifetime = variable_get('affiliate_cookie_lifetime_' . $rid, '1 year');
-      $cookie_lifetime = strtotime('+ ' . $cookie_lifetime);
+      $cookie_lifetime = variable_get('affiliate_cookie_lifetime_'. $rid, '1 year');
+      $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
 
       //$domain = _uc_affiliate2_get_domain();
 
-      setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');//, '.' . $domain);
-      setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');//, '.' . $domain);
-      setcookie('affiliate[timestamp]', time(), $cookie_lifetime, '/');//, '.' . $domain);
+      setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');//, '.'. $domain);
+      setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');//, '.'. $domain);
+      setcookie('affiliate[timestamp]', time(), $cookie_lifetime, '/');//, '.'. $domain);
     }
 
-    return true;
+    return TRUE;
   }
 
-  return false;
+  return FALSE;
 }
 
 function _uc_affiliate2_get_user_rid($user_roles) {
@@ -1562,11 +1562,11 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
   }
 
   if (!empty($_SESSION['affiliate_cookie_timestamp'])) {
-    $switch_after = variable_get('affiliate_commission_' . $_SESSION['affiliate_rid'] . '_switch_after', '5,3,2,2,1');
+    $switch_after = variable_get('affiliate_commission_'. $_SESSION['affiliate_rid'] .'_switch_after', '5,3,2,2,1');
     $now = time();
 
     if ($now - $_SESSION['affiliate_cookie_timestamp'] >= $switch_after) {
-      $structure = variable_get('affiliate_commission_structure_' . $_SESSION['affiliate_rid'], '5,3,2,2,1');
+      $structure = variable_get('affiliate_commission_structure_'. $_SESSION['affiliate_rid'], '5,3,2,2,1');
     }
     else {
       $structure = $default_structure;
@@ -1597,7 +1597,7 @@ function theme_uc_affiliate2_columns_checkboxes($e) {
     $e['#columns'] = count($options);
   }
   $rows = array();
-  foreach ($options as $key=>$value) {
+  foreach ($options as $key => $value) {
     $row[] = theme_checkbox($e[$key]);
     if (count($row) == $e['#columns']) {
       array_push($rows,$row);
