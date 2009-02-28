@@ -55,7 +55,7 @@ function uc_affiliate2_install() {
         ) /*!40100 DEFAULT CHARACTER SET utf8 */
       ");
       break;
-    
+
     case 'pgsql':
       break;
   }
@@ -63,7 +63,7 @@ function uc_affiliate2_install() {
 
 /**
  * Implementation of hook_uninstall().
- */ 
+ */
 function uc_affiliate2_uninstall() {
   db_query('DROP TABLE IF EXISTS {uc_affiliate2_users}');
   db_query('DROP TABLE IF EXISTS {uc_affiliate2_counts}');

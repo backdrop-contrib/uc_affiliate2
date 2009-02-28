@@ -129,23 +129,23 @@ function uc_affiliate2_menu($may_cache) {
       );
       //show upline and downline if affiliate hierarchy depth is greater than 1
       if (variable_get('affiliate_hierarchy_depth', 5) > 1) {
-	      $items[] = array(
-	        'path' => join('/', array('user', $account->uid, 'affiliate', 'downline')),
-	        'title' => t('Downline'),
-	        'access' => $access,
-	        'callback' => 'uc_affiliate2_downline',
-	        'type' => MENU_LOCAL_TASK,
-	        'weight' => 4
-	      );
-	      $items[] = array(
-	        'path' => join('/', array('user', $account->uid, 'affiliate', 'upline')),
-	        'title' => t('Upline'),
-	        'access' => $access,
-	        'callback' => 'uc_affiliate2_upline',
-	        'type' => MENU_LOCAL_TASK,
-	        'weight' => 5
-	      );
-    	}
+        $items[] = array(
+          'path' => join('/', array('user', $account->uid, 'affiliate', 'downline')),
+          'title' => t('Downline'),
+          'access' => $access,
+          'callback' => 'uc_affiliate2_downline',
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 4
+        );
+        $items[] = array(
+          'path' => join('/', array('user', $account->uid, 'affiliate', 'upline')),
+          'title' => t('Upline'),
+          'access' => $access,
+          'callback' => 'uc_affiliate2_upline',
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 5
+        );
+      }
     }
     //add item to node-form to adjust commissions by product
     if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') {
@@ -169,9 +169,10 @@ function uc_affiliate2_product_commission($nid) {
   // Get commission structure for this product
   $result = db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid);
   if ($product_commission = db_fetch_object($result)) {
-  	$commission_structure = $product_commission->commission_structure;
-  } else {
-	  $commission_structure = 0;
+    $commission_structure = $product_commission->commission_structure;
+  }
+  else {
+    $commission_structure = 0;
   }
 
   $form['affiliate_commission_structure_product'] = array(
@@ -201,8 +202,9 @@ function uc_affiliate2_product_commission_submit($form, $form_values) {
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
   if ($result && $result->commission_structure) {
     db_query('UPDATE {uc_affiliate2_product_commission} SET commission_structure="%s" WHERE nid=%d', serialize($commission_structure), $nid);
-  } else {
-   	db_query('INSERT {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, "%s")', $nid, serialize($commission_structure));
+  }
+  else {
+    db_query('INSERT {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, "%s")', $nid, serialize($commission_structure));
   }
 }
 
@@ -255,7 +257,7 @@ function _uc_affiliate2_display_products($op, $products='') {
       return $fields;
 
     case 'data':
-      foreach($products as $key => $product) {
+      foreach ($products as $key => $product) {
         $data['product_title'][] = $key;
         $data['preview'][] = $product;
         $data['code'][] = '<textarea cols="60" rows="4">'. $product .'</textarea>';
@@ -414,7 +416,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     $title = check_plain($product->title);
     $description = str_replace('"', "'", strip_tags($product->body));
 
-    switch($mode) {
+    switch ($mode) {
       case 'csv':
         $output .= $title .',';
         $output .= $product->sell_price .',';
@@ -711,8 +713,8 @@ function uc_affiliate2_admin_users_paid_submit($form_id, $form_values, $uid, $da
     db_query('UPDATE {uc_affiliate2_paid} SET amount=%f WHERE aid=%d AND date=%d', $amt, $uid, $date);
   }
 
-  $user = user_load(array('uid'=>$uid));
-  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount'=> uc_currency_format($amt), '!user'=>theme('username', $user), '@date'=>format_date($date, 'custom', 'M Y'))));
+  $user = user_load(array('uid' => $uid));
+  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amt), '!user' => theme('username', $user), '@date' => format_date($date, 'custom', 'M Y'))));
 
   return 'admin/store/affiliate/'. $uid;
 }
@@ -1440,7 +1442,8 @@ function uc_affiliate2_click($username = '') {
       }
     }
 
-  } else if ($username) {
+  }
+  else if ($username) {
       $account = user_load(array('name' => $username));
 
       if (_uc_affiliate2_clicked($account)) { // valid, redirect
@@ -1467,19 +1470,21 @@ function uc_affiliate2_click($username = '') {
           drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
         }
       }
-  } else if ($_REQUEST['a']) {
+  }
+  else if ($_REQUEST['a']) {
     // Lookup the affiliate's account
     $account = user_load(array('uid' => $_REQUEST['a']));
 
     _uc_affiliate2_clicked($account);
 
-  } else if ($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
+  }
+  else if ($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
     // Lookup the affiliate's account
     $account = user_load(array('uid' => $_COOKIE['affiliate']['uid']));
     $_SESSION['affiliate'] = $account->uid;
     $_SESSION['affiliate_cookie_timestamp'] = $_COOKIE['affiliate']['timestamp'];
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
-	}
+  }
 }
 
 function _uc_affiliate2_clicked($account) {
@@ -1557,7 +1562,8 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
   $product_commission_structure = unserialize($result->commission_structure);
   if ($product_commission_structure) {
     $default_structure = $product_commission_structure;
-  } else {
+  }
+  else {
     $default_structure = variable_get('affiliate_commission_structure', '5,3,2,2,1');
   }
 
