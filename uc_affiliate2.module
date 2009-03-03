@@ -546,7 +546,8 @@ function uc_affiliate2_admin_settings() {
 
 function uc_affiliate2_admin_settings_validate($form_id, $form_values) {
   $url = $form_values['affiliate_invalid_redirect'];
-  if ($url != check_url($url) || strpos($url, '://')===FALSE) {
+
+  if (!empty($url) && ($url != check_url($url) || strpos($url, '://')===FALSE)) {
     form_set_error('affiliate_invalid_redirect', t('Please enter a valid URL.'));
   }
 
