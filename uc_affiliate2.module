@@ -1440,6 +1440,7 @@ function uc_affiliate2_click($username = '') {
       }
       else {
         drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
+        drupal_goto('<front>');
       }
     }
 
@@ -1469,6 +1470,7 @@ function uc_affiliate2_click($username = '') {
         }
         else {
           drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
+          drupal_goto('<front>');
         }
       }
   }
