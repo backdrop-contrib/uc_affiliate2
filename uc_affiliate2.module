@@ -495,7 +495,7 @@ function uc_affiliate2_admin_settings() {
   $form['affiliate_invalid_redirect'] = array(
     '#type' => 'textfield',
     '#title' => t('On an invalid affiliate URL, redirect to'),
-    '#description' => t('When an invalid username is used as a subdomain, the user will be redirected to this URL.'),
+    '#description' => t('When an invalid username is used as a subdomain, the user will be redirected to this drupal path. Enter <front> for frontpage.'),
     '#default_value' => variable_get('affiliate_invalid_redirect', '')
   );
   $form['affiliate_enable_subdomain_handling'] = array(
@@ -547,8 +547,8 @@ function uc_affiliate2_admin_settings() {
 function uc_affiliate2_admin_settings_validate($form_id, $form_values) {
   $url = $form_values['affiliate_invalid_redirect'];
 
-  if (!empty($url) && ($url != check_url($url) || strpos($url, '://')===FALSE)) {
-    form_set_error('affiliate_invalid_redirect', t('Please enter a valid URL.'));
+  if (!empty($url) && ($url != check_url($url) || strpos($url, '://') !== FALSE)) {
+    form_set_error('affiliate_invalid_redirect', t('Please enter a valid Drupal path, without the http and domain parts.'));
   }
 
   $roles = user_roles(FALSE, 'act as affiliate');
@@ -1422,64 +1422,34 @@ function _uc_affiliate2_get_domain() {
  * Records affiliate ID in the user session and counts the click.
  */
 function uc_affiliate2_click($username = '') {
-  // See if the URL references an affiliate in the subdomain
-
+  // If the subdomain handling is enabled, see if the URL references an affiliate in the subdomain
   if (variable_get('affiliate_enable_subdomain_handling', 0)) {
     $subdomain = _uc_affiliate2_get_subdomain();
   }
 
-  if ($subdomain && $subdomain != 'www') {
-    // Lookup the affiliate's account
-    $account = user_load(array('name' => $subdomain));
-    if ($account && !_uc_affiliate2_clicked($account)) {
-      // User not an affiliate, redirect to default URL
-      $default_url = variable_get('affiliate_invalid_redirect', '');
-      if (!empty($default_url)) {
-        header("Location: $default_url");
-        exit(0);
-      }
-      else {
-        drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
-        drupal_goto('<front>');
-      }
-    }
+  $found_affiliate = false;
 
+  if ($subdomain && $subdomain != 'www') {
+    $account = user_load(array('name' => $subdomain));
+
+    if (_uc_affiliate2_clicked($account)) {
+      $found_affiliate = true;
+    }
   }
   else if ($username) {
-      $account = user_load(array('name' => $username));
+    $account = user_load(array('name' => $username));
 
-      if (_uc_affiliate2_clicked($account)) { // valid, redirect
-        $num_args = func_num_args();
-        if ($num_args > 1) {
-          $args = func_get_args();
-          unset($args[0]);
-          $path = join('/', $args);
-        }
-        else {
-          $path = '<front>';
-        }
-
-        drupal_goto($path);
-      }
-      else { // invalid
-        // User not an affiliate, redirect to default URL
-        $default_url = variable_get('affiliate_invalid_redirect', '');
-        if (!empty($default_url)) {
-          header("Location: $default_url");
-          exit(0);
-        }
-        else {
-          drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
-          drupal_goto('<front>');
-        }
-      }
+    if (_uc_affiliate2_clicked($account)) { // valid, redirect
+      $found_affiliate = true;
+    }
   }
   else if ($_REQUEST['a']) {
     // Lookup the affiliate's account
     $account = user_load(array('uid' => $_REQUEST['a']));
 
-    _uc_affiliate2_clicked($account);
-
+    if(_uc_affiliate2_clicked($account)) {
+      $found_affiliate = true;
+    }
   }
   else if ($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
     // Lookup the affiliate's account
@@ -1487,6 +1457,27 @@ function uc_affiliate2_click($username = '') {
     $_SESSION['affiliate'] = $account->uid;
     $_SESSION['affiliate_cookie_timestamp'] = $_COOKIE['affiliate']['timestamp'];
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
+  }
+
+  if($found_affiliate) {
+    $num_args = func_num_args();
+
+    if ($num_args > 1) {
+      $args = func_get_args();
+      unset($args[0]);
+      $path = join('/', $args);
+    }
+    else {
+      $path = '<front>';
+    }
+
+    drupal_goto($path);
+  }
+  else { // invalid affiliate id
+    $default_url = variable_get('affiliate_invalid_redirect', '<front>');
+
+    drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
+    drupal_goto($default_url);
   }
 }
 
