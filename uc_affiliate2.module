@@ -640,7 +640,7 @@ function uc_affiliate2_admin_users($uid) {
     $amt = uc_currency_format($amt);
 
     // format paid field as link or form
-    if ($monsel && is_numeric($monsel) && $date==$monsel) {
+    if ($monsel && is_numeric($monsel) && $date == $monsel) {
       $pform['amount'] = array(
         '#type' => 'textfield',
         '#title' => t('Amount paid'),
@@ -684,12 +684,14 @@ function uc_affiliate2_admin_users($uid) {
 function uc_affiliate2_admin_users_paid_validate($form_id, $form_values) {
   $sign = variable_get('uc_currency_sign', '$');
   $amt = $form_values['amount'];
+
   if (!is_numeric($amt)) {
     $amt = trim($amt);
-    if (substr($amt, 0, 1)==$sign) {
+    if (substr($amt, 0, 1) == $sign) {
       $amt = substr($amt, 1);
     }
   }
+
   if (!is_numeric($amt) || $amt < 0) {
     form_set_error('amount', t('Please specify an amount paid to this affiliate.'));
   }
@@ -701,7 +703,7 @@ function uc_affiliate2_admin_users_paid_submit($form_id, $form_values, $uid, $da
 
   if (!is_numeric($amt)) {
     $amt = trim($amt);
-    if (substr($amt, 0, 1)==$sign) {
+    if (substr($amt, 0, 1) == $sign) {
       $amt = substr($amt, 1);
     }
   }
@@ -786,7 +788,7 @@ function uc_affiliate2_monthly_report() {
         'uc_affiliate2_admin_users_paid_submit' => array($uid, $dateb)
       );
       $pform['#redirect'] = 'admin/store/affiliate/reports/'. $dateb;
-//TODO see above
+
       drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
       drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
       $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
@@ -810,6 +812,7 @@ function uc_affiliate2_monthly_report() {
   $output .= t("Show ") . l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $dateb-1)));
   $output .= t(" or ") . l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $datee))) .'.';
   $output .= theme('table', $header, $rows);
+
   return $output;
 }
 
@@ -945,7 +948,7 @@ function uc_affiliate2_dashboard() {
 
   $output = '';
 
-  $output .= '<div id=”affiliate-sales-header”><h2>Commission History</h2> <br />';
+  $output .= '<div id="affiliate-sales-header"><h2>Commission History</h2> <br />';
 
   $output .= 'Sales Today: '. $commissions['today']  .' <br />
               Sales last 7 Days: '  . $commissions['7days'] .' <br />
@@ -956,7 +959,7 @@ function uc_affiliate2_dashboard() {
 
   $output .= '</div>';
 
-  $output .= '<br /><div id=”affiliate-sales-click-count”><h2>Click Count</h2> <br />';
+  $output .= '<br /><div id="affiliate-sales-click-count"><h2>Click Count</h2> <br />';
 
   $output .= "Today's Clicks: ". $clicks['today'] ."<br />
               Last 7 Days: ". $clicks['7days'] ."<br />
@@ -967,7 +970,7 @@ function uc_affiliate2_dashboard() {
 
   $output .= '</div>';
 
-  $output .= '<br /><div id=”affiliate-links-header”><h2>'. t('Affiliate Links') .'</h2><br />';
+  $output .= '<br /><div id="affiliate-links-header"><h2>'. t('Affiliate Links') .'</h2><br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
   $text_link = l($text_link, 'affiliate/'. $account->name, array(), NULL, NULL, TRUE, TRUE);
