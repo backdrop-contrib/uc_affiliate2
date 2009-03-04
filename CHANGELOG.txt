@@ -1,5 +1,17 @@
 CHANGELOG for uc_affiliate2 module
 
+Version 1.4
+***********
+2009/03/05
+-- fixed typo. Removed an unused function ( uc_affiliate2_get_domain)
+-- code style cleanups all over the place.
+-- invalid redirect url is now a drupal path.
+-- don't validate the invalid redirect url if none has been provided (preventing the settings from being saved.)
+-- rewrote the affiliate id processing function. Removed code duplication and killed a handful of bugs, known to cause blank screens and 404s.
+-- Update role retrieval code to avoid future bugs. Reported by Scott.
+-- disable subdomain handling by default. Prevents the affiliate module fron malfuctioning on drupal subdomain installs.
+Those that don't have drupal on a subdomain can enable the handling in settings.
+
 Version 1.3
 ***********
 2009/02/09
