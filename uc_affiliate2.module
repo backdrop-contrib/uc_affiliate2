@@ -523,7 +523,7 @@ function uc_affiliate2_admin_settings() {
     );
     $form['affiliate_settings_role_'. $rid]['affiliate_comission_'. $rid .'_switch_after'] = array(
       '#type' => 'textfield',
-      '#title' => t('Switch to comission settings per role after'),
+      '#title' => t('Switch to commission settings per role after'),
       '#description' => t('Time after which the per role comission structure settings will be used, instead of the default ones. Strtotime syntax.'),
       '#default_value' => variable_get('affiliate_comission_'. $rid .'_switch_after', '2 days'),
      );
@@ -1409,15 +1409,6 @@ function _uc_affiliate2_get_subdomain() {
   return $host_array[0];
 }
 
-function _uc_affiliate2_get_domain() {
-  global $base_url;
-
-  $domain = str_replace('http://', '', $base_url);
-  $domain = explode('/', $domain);
-
-  return $domain[0];
-}
-
 /**
  * Records affiliate ID in the user session and counts the click.
  */
@@ -1501,11 +1492,9 @@ function _uc_affiliate2_clicked($account) {
       $cookie_lifetime = variable_get('affiliate_cookie_lifetime_'. $rid, '1 year');
       $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
 
-      //$domain = _uc_affiliate2_get_domain();
-
-      setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');//, '.'. $domain);
-      setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');//, '.'. $domain);
-      setcookie('affiliate[timestamp]', time(), $cookie_lifetime, '/');//, '.'. $domain);
+      setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');
+      setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');
+      setcookie('affiliate[timestamp]', time(), $cookie_lifetime, '/');
     }
 
     return TRUE;
