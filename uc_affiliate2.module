@@ -1421,9 +1421,8 @@ function uc_affiliate2_click($username = '') {
     $subdomain = _uc_affiliate2_get_subdomain();
   }
 
-  $found_affiliate = false;
-
   if ($subdomain && $subdomain != 'www') {
+    $found_affiliate = false;
     $account = user_load(array('name' => $subdomain));
 
     if (_uc_affiliate2_clicked($account)) {
@@ -1431,6 +1430,7 @@ function uc_affiliate2_click($username = '') {
     }
   }
   else if ($username) {
+    $found_affiliate = false;
     $account = user_load(array('name' => $username));
 
     if (_uc_affiliate2_clicked($account)) { // valid, redirect
@@ -1438,7 +1438,7 @@ function uc_affiliate2_click($username = '') {
     }
   }
   else if ($_REQUEST['a']) {
-    // Lookup the affiliate's account
+    $found_affiliate = false;
     $account = user_load(array('uid' => $_REQUEST['a']));
 
     if(_uc_affiliate2_clicked($account)) {
@@ -1453,7 +1453,7 @@ function uc_affiliate2_click($username = '') {
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
   }
 
-  if($found_affiliate) {
+  if($found_affiliate === true) {
     $num_args = func_num_args();
 
     if ($num_args > 1) {
@@ -1467,7 +1467,7 @@ function uc_affiliate2_click($username = '') {
 
     drupal_goto($path);
   }
-  else { // invalid affiliate id
+  else if($found_affiliate === false) { // invalid affiliate id
     $default_url = variable_get('affiliate_invalid_redirect', '<front>');
 
     drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
