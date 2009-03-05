@@ -8,7 +8,7 @@ Version 1.4
 -- invalid redirect url is now a drupal path.
 -- don't validate the invalid redirect url if none has been provided (preventing the settings from being saved.)
 -- rewrote the affiliate id processing function. Removed code duplication and killed a handful of bugs, known to cause blank screens and 404s.
--- Update role retrieval code to avoid future bugs. Reported by Scott.
+-- update role retrieval code to avoid future bugs. Reported by Scott.
 -- disable subdomain handling by default. Prevents the affiliate module fron malfuctioning on drupal subdomain installs.
 Those that don't have drupal on a subdomain can enable the handling in settings.
 

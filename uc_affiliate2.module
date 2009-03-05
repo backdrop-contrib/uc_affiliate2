@@ -223,6 +223,9 @@ function uc_affiliate2_links() {
 
     $output .= drupal_get_form('_uc_affiliate2_product_form', $products);
   }
+  else {
+    $output .= 'No products found.';
+  }
 
   return $output;
 }
