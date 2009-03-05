@@ -1,5 +1,12 @@
 CHANGELOG for uc_affiliate2 module
 
+Version 2.0
+***********
+2009/03
+-- port to drupal6/ubercart2.
+-- rewrote menu code.
+-- rewrote code that used tapir to use the drupal table api. 
+
 Version 1.4
 ***********
 2009/03/05
