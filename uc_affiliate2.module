@@ -1,6 +1,7 @@
 <?php
 // $Id$
 
+
 /**
  * @file
  * Tracks affiliate referrals and commissions
@@ -163,6 +164,11 @@ function _uc_affiliate2_node_access($node) {
  */
 function _uc_affiliate2_user_access($account, $mode = '') {
   global $user;
+
+  // The admin can't be an affiliate.
+  if($account->uid <= 1) {
+    return false;
+  }
 
   $access = (($user->uid == $account->uid) && user_access('act as affiliate', $account)) || (user_access('administer users') && user_access('act as affiliate', $account));
 
@@ -609,7 +615,14 @@ function uc_affiliate2_admin_manage() {
   );
 
   // define the query
-  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, ac.time, SUM(ac.clicks) AS clicks, SUM(ac.users) AS users, SUM(ac.orders) AS orders FROM {users} u INNER JOIN {users_roles} ur ON u.uid = ur.uid LEFT OUTER JOIN {uc_affiliate2_counts} ac ON u.uid = ac.aid WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%') GROUP BY u.uid";
+  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, ac.time,
+          SUM(ac.clicks) AS clicks, SUM(ac.users) AS users, SUM(ac.orders) AS orders
+            FROM {users} u
+              LEFT OUTER JOIN {users_roles} ur ON u.uid = ur.uid
+              LEFT OUTER JOIN {uc_affiliate2_counts} ac ON u.uid = ac.aid
+                WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%')
+                GROUP BY u.uid";
+
   $sql .= tablesort_sql($header);
   $result = db_query($sql);
 
@@ -876,7 +889,7 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
       }
       break;
     case 'view':
-      if (user_access('act as affiliate', $user)) {
+      if (user_access('act as affiliate', $user) && $user->uid > 1) {
         $user->content['affiliate'] = array(
           '#type' => 'user_profile_category',
           '#title' => t('Affiliate'),
@@ -1517,7 +1530,7 @@ function uc_affiliate2_click($username = '') {
 function _uc_affiliate2_clicked($account) {
   global $base_url, $user;
 
-  if ($account && user_access('act as affiliate', $account)) {
+  if ($account->uid > 1 && user_access('act as affiliate', $account)) {
     // store affiliate id in session and increment click count
     if (!$_SESSION['affiliate']) {
       $_SESSION['affiliate'] = $account->uid;
