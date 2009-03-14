@@ -966,13 +966,13 @@ function uc_affiliate2_dashboard() {
   $clicks['today'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last 7 days
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_week['start'] . " AND " . $dates['end'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'] . " GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['7days'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last year
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_year['start'] . " AND " . $dates['end'] . " GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'] . " GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['365days'] = ($count) ? $count['clicks'] : 0;
