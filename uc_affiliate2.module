@@ -1424,8 +1424,10 @@ function _uc_affiliate2_user_time() {
  *  Return the current time rounded down to the most recent chunk (day)
  */
 function uc_affiliate2_current_time() {
-  $time = time();
-  return $time - ($time % 86400);
+  $now = _uc_affiliate2_user_time();
+  $date = date('Y/m/d', $now);
+
+  return strtotime($date);
 }
 
 /**
