@@ -139,7 +139,7 @@ function uc_affiliate2_menu() {
   $items['node/%node/edit/commissions'] = array(
     'title' => 'Affiliate Commissions',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('uc_affiliate2_product_commission', arg(1)),
+    'page arguments' => array('uc_affiliate2_product_commission', 1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_node_access',
     'access arguments' => array(1),
@@ -194,10 +194,9 @@ function uc_affiliate2_init() {
 }
 
 // Form to associate attributes with products or classes.
-function uc_affiliate2_product_commission($nid) {
-
+function uc_affiliate2_product_commission($form_state, $node) {
   // Get commission structure for this product
-  $result = db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid);
+  $result = db_query("SELECT commission_structure FROM {uc_affiliate2_product_commission} WHERE nid = %d", $node->nid);
   if ($product_commission = db_fetch_object($result)) {
     $commission_structure = $product_commission->commission_structure;
   }
@@ -215,7 +214,7 @@ function uc_affiliate2_product_commission($nid) {
 
   $form['nid'] = array(
     '#type' => 'value',
-    '#value' => $nid,
+    '#value' => $node->nid,
   );
 
   $form['submit'] = array(
@@ -231,7 +230,7 @@ function uc_affiliate2_product_commission_submit($form, &$form_state) {
 
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
   if ($result && $result->commission_structure) {
-    db_query('UPDATE {uc_affiliate2_product_commission} SET commission_structure="%s" WHERE nid=%d', serialize($commission_structure), $nid);
+    db_query('UPDATE {uc_affiliate2_product_commission} SET commission_structure= "%s" WHERE nid = %d', serialize($commission_structure), $nid);
   }
   else {
     db_query('INSERT {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, "%s")', $nid, serialize($commission_structure));
