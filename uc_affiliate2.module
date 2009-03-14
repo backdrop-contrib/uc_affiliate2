@@ -937,52 +937,43 @@ function uc_affiliate2_dashboard() {
   $clicks = array();
 
   // get today's commissions
-  $start = strtotime("-1 days", $now);
+  $dates_today = _uc_affiliate2_predefined_range(7);
 
-  $dates['start3'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-  $dates['end3'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start3'] .' AND '. $dates['end3'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_today['start'] . ' AND ' . $dates_today['end'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['today'] = ($count) ? $count['cnt'] : 0;
 
   // get commissions from the last 7 days
-  $start = strtotime("-7 days", $now);
+  $dates_week = _uc_affiliate2_predefined_range(6);
 
-  $dates['start2'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-  $dates['end2'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start2'] .' AND '. $dates['end2'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_week['start'] . ' AND ' . $dates_week['end'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['7days'] = ($count) ? $count['cnt'] : 0;
 
   // get commissions from the last year
-  $start = strtotime("-365 days", $now);
+  $dates_year = _uc_affiliate2_predefined_range(5);
 
-  $dates['start1'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-  $dates['end1'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start1'] .' AND '. $dates['end1'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_year['start'] . ' AND ' . $dates_year['end'];
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $commissions['365days'] = ($count) ? $count['cnt'] : 0;
 
   // get today's clicks
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start3'] ." AND ". $dates['end3'] ." GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['today'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last 7 days
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start2'] ." AND ". $dates['end2'] ." GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_week['start'] . " AND " . $dates['end'] . " GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['7days'] = ($count) ? $count['clicks'] : 0;
 
   // get commissions from the last year
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start1'] ." AND ". $dates['end1'] ." GROUP BY click_date";
+  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_year['start'] . " AND " . $dates['end'] . " GROUP BY click_date";
   $result = db_query($sql);
   $count = db_fetch_array($result);
   $clicks['365days'] = ($count) ? $count['clicks'] : 0;
@@ -1376,26 +1367,41 @@ function _uc_affiliate2_predefined_range($type=0) {
   }
   else {
     switch ($type) {
-      case 0:
+      case 0: // this month
         $dates['start'] = mktime(0, 0, 0, date("m", $now) , 1, date("Y", $now)) - date("Z", $now);
         $dates['end'] = mktime(23, 59, 59, date("m", $now)+1 , 0, date("Y", $now)) - date("Z", $now);
         break;
-      case 1:
+      case 1: // last month
         $dates['start'] = mktime(0, 0, 0, date("m", $now)-1 , 1, date("Y", $now)) - date("Z", $now);
         $dates['end'] = mktime(23, 59, 59, date("m", $now) , 0, date("Y", $now)) - date("Z", $now);
         break;
-      case 2:
+      case 2: // last 30 days
         $start = strtotime("-30 days", $now);
         $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
         $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
         break;
-      case 3:
+      case 3: // last 60 days
         $start = strtotime("-60 days", $now);
         $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
         $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
         break;
-      case 4:
+      case 4: // last 90 days
         $start = strtotime("-90 days", $now);
+        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
+        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
+        break;
+      case 5: // last 365 days
+        $start = strtotime("-365 days", $now);
+        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
+        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
+        break;
+      case 6: // last 7 days
+        $start = strtotime("-7 days", $now);
+        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
+        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
+        break;
+      case 7: // today
+        $start = strtotime("-1 days", $now);
         $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
         $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
         break;
