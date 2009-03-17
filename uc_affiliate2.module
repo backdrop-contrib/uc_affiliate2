@@ -922,7 +922,6 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
     break;
   }
 }
-
 /*
  * Display dashboard for affiliate
  */
@@ -1027,8 +1026,6 @@ function uc_affiliate2_dashboard() {
   $output .= '<br />' . l('Click here for product links.', $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
-
-  return $output;
 }
 
 /*
