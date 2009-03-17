@@ -995,36 +995,36 @@ function uc_affiliate2_dashboard() {
 
   $output .= '<div id="affiliate-sales-header"><h2>Commission History</h2> <br />';
 
-  $output .= 'Sales Today: ' . $commissions['today']  . ' <br />
-              Sales last 7 Days: '  . $commissions['7days'] . ' <br />
-              Last 365 Days: ' . $commissions['365days'] . ' <br /><br />';
+  $output .= 'Sales Today: '. $commissions['today']  .' <br />
+              Sales last 7 Days: '  . $commissions['7days'] .' <br />
+              Last 365 Days: '. $commissions['365days'] .' <br /><br />';
 
   $commissions_url = join('/', array('user', $account->uid, 'affiliate', 'commissions'));
-  $output .= l('Click here for more reports.', $commissions_url, array(), null, null, true, false);
+  $output .= l('Click here for more reports.', $commissions_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
   $output .= '<br /><div id="affiliate-sales-click-count"><h2>Click Count</h2> <br />';
 
-  $output .= "Today's Clicks: " . $clicks['today'] . "<br />
-              Last 7 Days: " . $clicks['7days'] . "<br />
-              Last 365 Days: " . $clicks['365days'] . "<br /><br />";
+  $output .= "Today's Clicks: ". $clicks['today'] ."<br />
+              Last 7 Days: ". $clicks['7days'] ."<br />
+              Last 365 Days: ". $clicks['365days'] ."<br /><br />";
 
   $clicks_url = join('/', array('user', $account->uid, 'affiliate', 'clicks'));
-  $output .= l('Click here for customized click reporting.', $clicks_url, array(), null, null, true, false);
+  $output .= l('Click here for customized click reporting.', $clicks_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
-  $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2><br />';
+  $output .= '<br /><div id="affiliate-links-header"><h2>'. t('Affiliate Links') .'</h2><br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, 'affiliate/' . $account->name, array(), null, null, true, true);
-  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">' . $text_link . '</textarea>';
+  $text_link = l($text_link, 'affiliate/'. $account->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
-  $output .= tapir_get_table('_uc_affiliate2_display_banners', $null);
+  $output .= _uc_affiliate2_display_banners();
 
   $links_url = join('/', array('user', $account->uid, 'affiliate', 'links'));
-  $output .= '<br />' . l('Click here for product links.', $links_url, array(), null, null, true, false);
+  $output .= '<br />' . l('Click here for product links.', $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
