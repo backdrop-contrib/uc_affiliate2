@@ -932,50 +932,62 @@ function uc_affiliate2_dashboard() {
   $account = user_load(array('uid' => arg(1)));
 
   $now = _uc_affiliate2_user_time();
-  $commissions = array();
-  $clicks = array();
+  $commissions = array('today' => 0, '7days' => 0, '365days' => 0);
+  $clicks = array('today' => 0, '7days' => 0, '365days' => 0);
 
   // get today's commissions
   $dates_today = _uc_affiliate2_predefined_range(7);
 
   $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_today['start'] . ' AND ' . $dates_today['end'];
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $commissions['today'] = ($count) ? $count['cnt'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $commissions['today'] += $count['cnt'];
+  }
 
   // get commissions from the last 7 days
   $dates_week = _uc_affiliate2_predefined_range(6);
 
   $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_week['start'] . ' AND ' . $dates_week['end'];
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $commissions['7days'] = ($count) ? $count['cnt'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $commissions['7days'] += $count['cnt'];
+  }
 
   // get commissions from the last year
   $dates_year = _uc_affiliate2_predefined_range(5);
 
   $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $account->uid . ' AND uco.created between ' . $dates_year['start'] . ' AND ' . $dates_year['end'];
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $commissions['365days'] = ($count) ? $count['cnt'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $commissions['365days'] += $count['cnt'];
+  }
 
   // get today's clicks
   $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY click_date";
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $clicks['today'] = ($count) ? $count['clicks'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $clicks['today'] += $count['clicks'];
+  }
 
   // get commissions from the last 7 days
   $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'] . " GROUP BY click_date";
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $clicks['7days'] = ($count) ? $count['clicks'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $clicks['7days'] += $count['clicks'];
+  }
 
   // get commissions from the last year
   $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $account->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'] . " GROUP BY click_date";
   $result = db_query($sql);
-  $count = db_fetch_array($result);
-  $clicks['365days'] = ($count) ? $count['clicks'] : 0;
+
+  while ($count = db_fetch_array($result)) {
+    $clicks['365days'] += $count['clicks'];
+  }
 
   drupal_set_title(t('Affiliate Center'));
 
@@ -983,36 +995,36 @@ function uc_affiliate2_dashboard() {
 
   $output .= '<div id="affiliate-sales-header"><h2>Commission History</h2> <br />';
 
-  $output .= 'Sales Today: '. $commissions['today']  .' <br />
-              Sales last 7 Days: '  . $commissions['7days'] .' <br />
-              Last 365 Days: '. $commissions['365days'] .' <br /><br />';
+  $output .= 'Sales Today: ' . $commissions['today']  . ' <br />
+              Sales last 7 Days: '  . $commissions['7days'] . ' <br />
+              Last 365 Days: ' . $commissions['365days'] . ' <br /><br />';
 
   $commissions_url = join('/', array('user', $account->uid, 'affiliate', 'commissions'));
-  $output .= l('Click here for more reports.', $commissions_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= l('Click here for more reports.', $commissions_url, array(), null, null, true, false);
 
   $output .= '</div>';
 
   $output .= '<br /><div id="affiliate-sales-click-count"><h2>Click Count</h2> <br />';
 
-  $output .= "Today's Clicks: ". $clicks['today'] ."<br />
-              Last 7 Days: ". $clicks['7days'] ."<br />
-              Last 365 Days: ". $clicks['365days'] ."<br /><br />";
+  $output .= "Today's Clicks: " . $clicks['today'] . "<br />
+              Last 7 Days: " . $clicks['7days'] . "<br />
+              Last 365 Days: " . $clicks['365days'] . "<br /><br />";
 
   $clicks_url = join('/', array('user', $account->uid, 'affiliate', 'clicks'));
-  $output .= l('Click here for customized click reporting.', $clicks_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= l('Click here for customized click reporting.', $clicks_url, array(), null, null, true, false);
 
   $output .= '</div>';
 
-  $output .= '<br /><div id="affiliate-links-header"><h2>'. t('Affiliate Links') .'</h2><br />';
+  $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2><br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, 'affiliate/'. $account->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
-  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
+  $text_link = l($text_link, 'affiliate/' . $account->name, array(), null, null, true, true);
+  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">' . $text_link . '</textarea>';
 
-  $output .= _uc_affiliate2_display_banners();
+  $output .= tapir_get_table('_uc_affiliate2_display_banners', $null);
 
   $links_url = join('/', array('user', $account->uid, 'affiliate', 'links'));
-  $output .= '<br />' . l('Click here for product links.', $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= '<br />' . l('Click here for product links.', $links_url, array(), null, null, true, false);
 
   $output .= '</div>';
 
