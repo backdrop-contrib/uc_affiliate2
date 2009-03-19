@@ -167,7 +167,7 @@ function _uc_affiliate2_user_access($account, $mode = '') {
 
   // The admin can't be an affiliate.
   if($account->uid <= 1) {
-    return false;
+    return FALSE;
   }
 
   $access = (($user->uid == $account->uid) && user_access('act as affiliate', $account)) || (user_access('administer users') && user_access('act as affiliate', $account));
@@ -858,7 +858,7 @@ function uc_affiliate2_monthly_report() {
  * Increment affiliate counts
  */
 function uc_affiliate2_add_count($aff, $clicks = 0, $users = 0, $orders = 0) {
-  $time = uc_affiliate2_current_time();
+  $time = time();
 
   if ($clicks > 0) {
     db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $aff, $time);
@@ -930,7 +930,6 @@ function uc_affiliate2_dashboard() {
 
   $account = user_load(array('uid' => arg(1)));
 
-  $now = _uc_affiliate2_user_time();
   $commissions = array('today' => 0, '7days' => 0, '365days' => 0);
   $clicks = array('today' => 0, '7days' => 0, '365days' => 0);
 
@@ -1367,76 +1366,57 @@ function uc_affiliate2_time_selection_form_submit($form, &$form_state) {
 }
 
 function _uc_affiliate2_predefined_range($type=0) {
-  $now = _uc_affiliate2_user_time();
+  $now = time();
   $dates = array();
-  if (arg(5)!=0 && arg(6)!=0) {
-    $dates['start'] = arg(5);
-    $dates['end'] = arg(6);
+
+  if (arg(5)!= 0 && arg(6)!= 0) {
+    $dates = array('start' => arg(5), 'end' => arg(6));
+
+    return $dates;
   }
-  else {
-    switch ($type) {
-      case 0: // this month
-        $dates['start'] = mktime(0, 0, 0, date("m", $now) , 1, date("Y", $now)) - date("Z", $now);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now)+1 , 0, date("Y", $now)) - date("Z", $now);
-        break;
-      case 1: // last month
-        $dates['start'] = mktime(0, 0, 0, date("m", $now)-1 , 1, date("Y", $now)) - date("Z", $now);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , 0, date("Y", $now)) - date("Z", $now);
-        break;
-      case 2: // last 30 days
-        $start = strtotime("-30 days", $now);
-        $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-      case 3: // last 60 days
-        $start = strtotime("-60 days", $now);
-        $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-      case 4: // last 90 days
-        $start = strtotime("-90 days", $now);
-        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-      case 5: // last 365 days
-        $start = strtotime("-365 days", $now);
-        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-      case 6: // last 7 days
-        $start = strtotime("-7 days", $now);
-        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-      case 7: // today
-        $start = strtotime("-1 days", $now);
-        $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start)) - date("Z", $start);
-        $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now)) - date("Z", $now);
-        break;
-    }
+
+  switch ($type) {
+    case 0: // this month
+      $dates['start'] = mktime(0, 0, 0, date("m", $now) , 1, date("Y", $now));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now)+1 , 0, date("Y", $now));
+      break;
+    case 1: // last month
+      $dates['start'] = mktime(0, 0, 0, date("m", $now)-1 , 1, date("Y", $now));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , 0, date("Y", $now));
+      break;
+    case 2: // last 30 days
+      $start = strtotime("-30 days", $now);
+      $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
+    case 3: // last 60 days
+      $start = strtotime("-60 days", $now);
+      $dates['start'] = mktime(0, 0, 0, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
+    case 4: // last 90 days
+      $start = strtotime("-90 days", $now);
+      $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
+    case 5: // last 365 days
+      $start = strtotime("-365 days", $now);
+      $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
+    case 6: // last 7 days
+      $start = strtotime("-7 days", $now);
+      $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
+    case 7: // today
+      $start = strtotime("-1 days", $now);
+      $dates['start'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+      $dates['end'] = mktime(23, 59, 59, date("m", $now) , date("d", $now), date("Y", $now));
+      break;
   }
+
   return $dates;
-}
-
-function _uc_affiliate2_user_time() {
-  global $user;
-
-  if (variable_get('configurable_timezones', 1) && $user->uid && strlen($user->timezone)) {
-    return (time() - date("Z")) + $user->timezone;
-  }
-  else {
-    return (time() - date("Z")) + variable_get('date_default_timezone', 0);
-  }
-}
-
-/**
- *  Return the current time rounded down to the most recent chunk (day)
- */
-function uc_affiliate2_current_time() {
-  $now = _uc_affiliate2_user_time();
-  $date = date('Y/m/d', $now);
-
-  return strtotime($date);
 }
 
 /**
