@@ -7,4 +7,5 @@ Version 2.0
 -- rewrote menu code.
 -- rewrote code that used tapir to use the drupal table api.
 -- rewrote the dashboard code (counters were incorrect, code was ugly)
--- new date/time handling code, fixes issues on some configurations.
+-- new date&time handling code, fixes issues on some configurations.
+-- removed old timezone handling code. Handling it the drupal way.

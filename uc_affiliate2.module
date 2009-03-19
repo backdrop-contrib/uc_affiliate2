@@ -110,7 +110,7 @@ function uc_affiliate2_menu() {
     '#weight' => 2
   );
   $items['user/%user/affiliate/clicks'] = array(
-    'title' => 'Click Count',
+    'title' => 'Unique Click Count',
     'page callback' => 'uc_affiliate2_clicks',
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
@@ -1002,7 +1002,7 @@ function uc_affiliate2_dashboard() {
 
   $output .= '</div>';
 
-  $output .= '<br /><div id="affiliate-sales-click-count"><h2>Click Count</h2> <br />';
+  $output .= '<br /><div id="affiliate-sales-click-count"><h2>Unique Click Count</h2> <br />';
 
   $output .= "Today's Clicks: ". $clicks['today'] ."<br />
               Last 7 Days: ". $clicks['7days'] ."<br />
@@ -1077,7 +1077,7 @@ function uc_affiliate2_commissions() {
  * Display affiliate clicks
  */
 function uc_affiliate2_clicks() {
-  drupal_set_title(t('Click count'));
+  drupal_set_title(t('Unique Click count'));
 
   $account = user_load(array('uid' => arg(1)));
 
