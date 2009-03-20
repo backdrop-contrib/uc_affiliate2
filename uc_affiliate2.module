@@ -675,7 +675,6 @@ function uc_affiliate2_admin_users($uid) {
   }
 
   foreach ($total_sales as $date => $sales) {
-    // load current amount paid
     $amount = ($amounts[$date]) ? $amounts[$date] : 0;
     $amount = uc_currency_format($amount);
 
