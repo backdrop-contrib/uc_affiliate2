@@ -608,7 +608,7 @@ function uc_affiliate2_admin_manage() {
     array('data' => t('Status'), 'field' => 'u.status'),
     array('data' => t('Member for'), 'field' => 'u.created', 'sort' => 'desc'),
     array('data' => t('Last access'), 'field' => 'u.access'),
-    array('data' => t('Visits'), 'field' => 'clicks'),
+    array('data' => t('Unique Clicks'), 'field' => 'clicks'),
     array('data' => t('Users'), 'field' => 'users'),
     array('data' => t('Orders'), 'field' => 'orders'),
   );
@@ -681,27 +681,7 @@ function uc_affiliate2_admin_users($uid) {
 
     // format paid field as link or form
     if ($month_timestamp && is_numeric($month_timestamp) && $date == $month_timestamp) {
-      $form['amount'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Amount paid'),
-        '#default_value' => $amount,
-        '#size' => 8,
-      );
-      $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Save'),
-      );
-      $form['#validate'] = array(
-        'uc_affiliate2_admin_users_paid_validate' => array($uid, $date)
-      );
-      $form['#submit'] = array(
-        'uc_affiliate2_admin_users_paid_submit' => array($uid, $date)
-      );
-
-      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
-      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
-
-      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
+      $paid = drupal_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, $date);
     }
     else {
       $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $date)));
@@ -723,12 +703,38 @@ function uc_affiliate2_admin_users($uid) {
   return $output;
 }
 
+function uc_affiliate2_admin_users_paid_form($form_state, $amount, $uid, $date) {
+  $form['amount'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Amount paid'),
+    '#default_value' => $amount,
+    '#size' => 8,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $uid
+  );
+  $form['date'] = array(
+    '#type' => 'value',
+    '#value' => $date
+  );
+
+  $form['#redirect'] = 'admin/store/affiliate/reports/'. $date_start;
+
+  return $form;
+}
+
 function uc_affiliate2_admin_users_paid_validate($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
   $amount = $form_state['values']['amount'];
+
   if (!is_numeric($amount)) {
     $amount = trim($amount);
-    if (substr($amount, 0, 1)==$sign) {
+    if (substr($amount, 0, 1) == $sign) {
       $amount = substr($amount, 1);
     }
   }
@@ -740,6 +746,8 @@ function uc_affiliate2_admin_users_paid_validate($form, &$form_state) {
 function uc_affiliate2_admin_users_paid_submit($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
   $amount = $form_state['values']['amount'];
+  $uid = $form_state['values']['uid'];
+  $date = $form_state['values']['date'];
 
   if (!is_numeric($amount)) {
     $amount = trim($amount);
@@ -772,6 +780,8 @@ function _uc_affiliate2_get_amounts($filter, $filter_value, $index) {
   while ($amount_data = db_fetch_array($amount_results)) {
     $amounts[$amount_data[$index]] = $amount_data['amount'];
   }
+
+  return $amounts;
 }
 
 function uc_affiliate2_monthly_report() {
@@ -832,36 +842,14 @@ function uc_affiliate2_monthly_report() {
 
     // format paid field as link or form
     if ($uid_external && is_numeric($uid_external) && $uid == $uid_external) {
-      $form['amount'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Amount paid'),
-        '#default_value' => $amount,
-        '#size' => 8,
-      );
-      $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Save'),
-      );
-      $form['#validate'] = array(
-        'uc_affiliate2_admin_users_paid_validate' => array($uid, $date_start)
-      );
-      $form['#submit'] = array(
-        'uc_affiliate2_admin_users_paid_submit' => array($uid, $date_start)
-      );
-      $form['#redirect'] = 'admin/store/affiliate/reports/'. $date_start;
-
-      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
-      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
-
-      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
+      $paid = drupal_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, $date_start);
     }
     else {
       $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $date_start, $uid)));
     }
 
-    // generate record
     $rows[] = array(
-      theme('username', $users[$uid]),
+      $users[$uid],
       uc_currency_format($sales),
       uc_currency_format($total_commissions[$uid]),
       $paid
@@ -1048,6 +1036,8 @@ function uc_affiliate2_dashboard() {
   $output .= '<br />' . l('Click here for product links.', $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
+
+  return $output;
 }
 
 /*
@@ -1107,7 +1097,7 @@ function uc_affiliate2_clicks() {
   // setup the table
   $header = array(
     array('data' => t('Date'), 'field' => "click_date", 'sort' => 'desc'),
-    array('data' => t('Visits'), 'field' => "clicks"),
+    array('data' => t('Unique Clicks'), 'field' => "clicks"),
   );
 
   // Create sql to display level of affiliate specified
@@ -1292,7 +1282,7 @@ function uc_affiliate2_order($op, $order, $status) {
         if ($comm_pct>0) {
           //TODO should this be rounded to nearest penny???
           $comm = $data['total'] * $comm_pct;
-          $note = t('Level @level commission of @percent% recorded for affiliate @affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
+          $note = t('Level @level commission of @percent% recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
           db_query("INSERT {uc_affiliate2_commission} (order_id, aid, commission, commission_notes) VALUES (%d, %d, %f, '%s')", $order->order_id, $aff, $comm, $note);
           uc_order_comment_save($order->order_id, $user->uid, $note);
           uc_affiliate2_add_count($aff, 0, 0, 1);
