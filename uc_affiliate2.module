@@ -646,7 +646,10 @@ function uc_affiliate2_admin_manage() {
 }
 
 function uc_affiliate2_admin_users($uid) {
-  $monsel = arg(4);
+  // used to determine whether to show the paid form.
+  $month_timestamp = arg(4);
+
+  $user = user_load(array('uid' => $uid));
 
   // setup the table
   $header = array(
@@ -659,112 +662,131 @@ function uc_affiliate2_admin_users($uid) {
   // define the query
   $sql = 'SELECT ac.commission, uo.order_total, uo.created FROM {uc_affiliate2_commission} AS ac LEFT OUTER JOIN {uc_orders} AS uo ON ac.order_id = uo.order_id WHERE ac.aid = %d';
   $result = db_query($sql, $uid);
-  $user = user_load(array('uid' => $uid));
 
-  $status = array(t('pending'), t('final'));
-  $sumsales = array();
-  $sumcomm = array();
+  $total_sales = array();
+  $total_commissions = array();
+  $amounts = _uc_affiliate2_get_amounts('aid', $uid, 'date');
 
   while ($rec = db_fetch_array($result)) {
-    $darray = getdate($rec['created']);
-    $mondate = mktime(0, 0, 0, $darray['mon'], 1, $darray['year']);
-    $sumsales[$mondate] = isset($sumsales[$mondate]) ? $sumsales[$mondate]+$rec['order_total'] : $rec['order_total'];
-    $sumcomm[$mondate] = isset($sumcomm[$mondate]) ? $sumcomm[$mondate]+$rec['commission'] : $rec['commission'];
+    $date_array = getdate($rec['created']);
+    $mondate = mktime(0, 0, 0, $date_array['mon'], 1, $date_array['year']);
+    $total_sales[$mondate] = isset($total_sales[$mondate]) ? $total_sales[$mondate]+$rec['order_total'] : $rec['order_total'];
+    $total_commissions[$mondate] = isset($total_commissions[$mondate]) ? $total_commissions[$mondate]+$rec['commission'] : $rec['commission'];
   }
 
-  foreach ($sumsales as $date => $sales) {
+  foreach ($total_sales as $date => $sales) {
     // load current amount paid
-    $amt = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
-    if ($amt===FALSE) {
-      $amt = 0;
-    }
-    $amt = uc_currency_format($amt);
+    $amount = ($amounts[$date]) ? $amounts[$date] : 0;
+    $amount = uc_currency_format($amount);
 
     // format paid field as link or form
-    if ($monsel && is_numeric($monsel) && $date==$monsel) {
-      $pform['amount'] = array(
+    if ($month_timestamp && is_numeric($month_timestamp) && $date == $month_timestamp) {
+      $form['amount'] = array(
         '#type' => 'textfield',
         '#title' => t('Amount paid'),
-        '#default_value' => $amt,
+        '#default_value' => $amount,
         '#size' => 8,
       );
-      $pform['submit'] = array(
+      $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save'),
       );
-      $pform['#validate'] = array(
+      $form['#validate'] = array(
         'uc_affiliate2_admin_users_paid_validate' => array($uid, $date)
       );
-      $pform['#submit'] = array(
+      $form['#submit'] = array(
         'uc_affiliate2_admin_users_paid_submit' => array($uid, $date)
       );
 
-      //TODO check this alternative to using drupal_get_form
-      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $date, $pform);
-      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $date, $pform);
-      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $date, $pform);
+      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
+      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
+
+      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $date, $form);
     }
     else {
-      $paid = l($amt, join('/', array(arg(0), arg(1), arg(2), arg(3), $date)));
+      $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $date)));
     }
 
     // generate record
     $rows[] = array(
       format_date($date, 'custom', 'M Y'),
       uc_currency_format($sales),
-      uc_currency_format($sumcomm[$date]),
+      uc_currency_format($total_commissions[$date]),
       $paid
     );
   }
 
   $output = "<p>". t("Displaying affiliate sales and commissions for ") . theme('username', $user) .".";
+
   $output .= theme('table', $header, $rows);
+
   return $output;
 }
 
 function uc_affiliate2_admin_users_paid_validate($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
-  $amt = $form_state['values']['amount'];
-  if (!is_numeric($amt)) {
-    $amt = trim($amt);
-    if (substr($amt, 0, 1)==$sign) {
-      $amt = substr($amt, 1);
+  $amount = $form_state['values']['amount'];
+  if (!is_numeric($amount)) {
+    $amount = trim($amount);
+    if (substr($amount, 0, 1)==$sign) {
+      $amount = substr($amount, 1);
     }
   }
-  if (!is_numeric($amt) || $amt < 0) {
+  if (!is_numeric($amount) || $amount < 0) {
     form_set_error('amount', t('Please specify an amount paid to this affiliate.'));
   }
 }
 
 function uc_affiliate2_admin_users_paid_submit($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
-  $amt = $form_state['values']['amount'];
+  $amount = $form_state['values']['amount'];
 
-  if (!is_numeric($amt)) {
-    $amt = trim($amt);
-    if (substr($amt, 0, 1)==$sign) {
-      $amt = substr($amt, 1);
+  if (!is_numeric($amount)) {
+    $amount = trim($amount);
+    if (substr($amount, 0, 1)==$sign) {
+      $amount = substr($amount, 1);
     }
   }
 
   $rec = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
   if ($rec===FALSE) {
-    db_query('INSERT {uc_affiliate2_paid} (aid, date, amount) VALUES (%d, %d, %f)', $uid, $date, $amt);
+    db_query('INSERT {uc_affiliate2_paid} (aid, date, amount) VALUES (%d, %d, %f)', $uid, $date, $amount);
   }
   else {
-    db_query('UPDATE {uc_affiliate2_paid} SET amount=%f WHERE aid=%d AND date=%d', $amt, $uid, $date);
+    db_query('UPDATE {uc_affiliate2_paid} SET amount=%f WHERE aid=%d AND date=%d', $amount, $uid, $date);
   }
 
   $user = user_load(array('uid' => $uid));
-  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amt), '!user' => theme('username', $user), '@date' => format_date($date, 'custom', 'M Y'))));
+  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amount), '!user' => theme('username', $user), '@date' => format_date($date, 'custom', 'M Y'))));
 
   return 'admin/store/affiliate/'. $uid;
 }
 
+/**
+ * Used to avoid the N+1 queries problem on monthly_report and admin_users.
+ */
+function _uc_affiliate2_get_amounts($filter, $filter_value, $index) {
+  $amount_results = db_query("SELECT amount, aid, date FROM {uc_affiliate2_paid} WHERE $filter = %d", $filter_value);
+  $amounts = array();
+
+  while ($amount_data = db_fetch_array($amount_results)) {
+    $amounts[$amount_data[$index]] = $amount_data['amount'];
+  }
+}
+
 function uc_affiliate2_monthly_report() {
-  //TODO can this function and uc_affiliate2_admin_users be consolidated?
-  $monsel = arg(4);
-  $uidsel = arg(5);
+   // The month we are viewing. If this is empty, the current month is assumed.
+  $month_timestamp = arg(4);
+
+  if ($month_timestamp && is_numeric($month_timestamp)) {
+    $date_array = getdate($month_timestamp);
+  }
+  else {
+    $date_array = getdate();
+  }
+
+   // Used to determine whether to show the paid form
+  $uid_external = arg(5);
 
   // setup the table
   $header = array(
@@ -775,82 +797,83 @@ function uc_affiliate2_monthly_report() {
   );
 
   // define the query
-  if ($monsel && is_numeric($monsel)) {
-    $darray = getdate($monsel);
-  }
-  else {
-    $darray = getdate();
-  }
-  $dateb = mktime(0, 0, 0, $darray['mon'], 1, $darray['year']);
-  if ($darray['mon']==12) {
-    $datee = mktime(0, 0, 0, 1, 1, $darray['year']+1);
-  }
-  else {
-    $datee = mktime(0, 0, 0, $darray['mon']+1, 1, $darray['year']);
-  }
-  $sql = 'SELECT ac.aid, ac.commission, uo.order_total FROM {uc_affiliate2_commission} AS ac LEFT OUTER JOIN {uc_orders} AS uo ON ac.order_id = uo.order_id WHERE uo.created BETWEEN %d AND %d';
-  $result = db_query($sql, $dateb, $datee);
+  $date_start = mktime(0, 0, 0, $date_array['mon'], 1, $date_array['year']);
 
-  $sumsales = array();
-  $sumcomm = array();
+  if ($date_array['mon'] == 12) {
+    $date_end = mktime(0, 0, 0, 1, 1, $date_array['year'] + 1);
+  }
+  else {
+    $date_end = mktime(0, 0, 0, $date_array['mon'] + 1, 1, $date_array['year']);
+  }
+
+  $sql = 'SELECT ac.aid, ac.commission, uo.order_total FROM {uc_affiliate2_commission} AS ac LEFT OUTER JOIN {uc_orders} AS uo ON ac.order_id = uo.order_id WHERE uo.created BETWEEN %d AND %d';
+  $result = db_query($sql, $date_start, $date_end);
+
+  $total_sales = array();
+  $total_commissions = array();
+  $amounts = _uc_affiliate2_get_amounts('date', $date_start, 'aid');
 
   while ($rec = db_fetch_array($result)) {
-    $uid = $rec['aid'];
-    $sumsales[$uid] = isset($sumsales[$uid]) ? $sumsales[$uid]+$rec['order_total'] : $rec['order_total'];
-    $sumcomm[$uid] = isset($sumcomm[$uid]) ? $sumcomm[$uid]+$rec['commission'] : $rec['commission'];
+    $aid = $rec['aid'];
+    $total_sales[$aid] = isset($total_sales[$aid]) ? $total_sales[$aid] + $rec['order_total'] : $rec['order_total'];
+    $total_commissions[$aid] = isset($total_commissions[$aid]) ? $total_commissions[$aid] + $rec['commission'] : $rec['commission'];
   }
 
-  foreach ($sumsales as $uid => $sales) {
-    // load current amount paid
-    $amt = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $dateb));
-    if ($amt===FALSE) {
-      $amt = 0;
-    }
-    $amt = uc_currency_format($amt);
+  $user_results = db_query('SELECT name, uid FROM {users}');
+  $users = array();
+
+  while ($user = db_fetch_array($user_results)) {
+    $users[$user['uid']] = $user['name'];
+  }
+
+  foreach ($total_sales as $uid => $sales) {
+    $amount = ($amounts[$uid]) ? $amounts[$uid] : 0;
+    $amount = uc_currency_format($amount);
 
     // format paid field as link or form
-    if ($uidsel && is_numeric($uidsel) && $uid==$uidsel) {
-      $pform['amount'] = array(
+    if ($uid_external && is_numeric($uid_external) && $uid == $uid_external) {
+      $form['amount'] = array(
         '#type' => 'textfield',
         '#title' => t('Amount paid'),
-        '#default_value' => $amt,
+        '#default_value' => $amount,
         '#size' => 8,
       );
-      $pform['submit'] = array(
+      $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save'),
       );
-      $pform['#validate'] = array(
-        'uc_affiliate2_admin_users_paid_validate' => array($uid, $dateb)
+      $form['#validate'] = array(
+        'uc_affiliate2_admin_users_paid_validate' => array($uid, $date_start)
       );
-      $pform['#submit'] = array(
-        'uc_affiliate2_admin_users_paid_submit' => array($uid, $dateb)
+      $form['#submit'] = array(
+        'uc_affiliate2_admin_users_paid_submit' => array($uid, $date_start)
       );
-      $pform['#redirect'] = 'admin/store/affiliate/reports/'. $dateb;
-//TODO see above
-      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
-      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
-      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $dateb, $pform);
+      $form['#redirect'] = 'admin/store/affiliate/reports/'. $date_start;
+
+      drupal_process_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
+      drupal_prepare_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
+
+      $paid = drupal_render_form('uc_affiliate2_'. $uid .'_paid_'. $date_start, $form);
     }
     else {
-      $paid = l($amt, join('/', array(arg(0), arg(1), arg(2), arg(3), $dateb, $uid)));
+      $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $date_start, $uid)));
     }
-
-    $user = user_load(array('uid' => $uid));
 
     // generate record
     $rows[] = array(
-      theme('username', $user),
+      theme('username', $users[$uid]),
       uc_currency_format($sales),
-      uc_currency_format($sumcomm[$uid]),
+      uc_currency_format($total_commissions[$uid]),
       $paid
     );
   }
 
-  $output = "<p>". t("Displaying affiliate sales and commissions for ") . format_date($dateb, 'custom', 'M Y') .".";
-  $output .= t("Show ") . l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $dateb-1)));
-  $output .= t(" or ") . l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $datee))) .'.';
+  $output = "<p>". t("Displaying affiliate sales and commissions for ") . format_date($date_start, 'custom', 'M Y') .".";
+  $output .= t("Show ") . l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $date_start-1)));
+  $output .= t(" or ") . l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), $date_end))) .'.';
+
   $output .= theme('table', $header, $rows);
+
   return $output;
 }
 
