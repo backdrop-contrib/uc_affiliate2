@@ -1,6 +1,3 @@
-NOTE: The subdomain affiliate link handling is disabled by default from version 1.4.
-You can enable it from the Affiliate Settings page in Ubercart admin.
-
 This (uc_affiliate2) is a module providing affiliate functionality for Ubercart.
 
 Initial activity started here:
@@ -29,8 +26,17 @@ Easy customer dashboard
 Per product commissions
 Multiple levels of commissioning
 
+Notes
+*****
+- The subdomain affiliate link handling is disabled by default from version 1.4.
+You can enable it from the Affiliate Settings page in Ubercart admin.
+- The admin ( user uid: 1) can't be an affiliate
+- Create a role, give it affiliate permission, and then assign users to that role.
+If you assign two roles with affiliate permissions to a user, bad things happen :)
+
 Sponsors
 ********
 Aaron Schiff (http://www.ecopaper.com/)
 Polish Your Image (http://polishyourimage.com)
+A Mountain Top, LLC (http://amountaintop.com)
 You?
