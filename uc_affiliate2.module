@@ -101,7 +101,7 @@ function uc_affiliate2_menu() {
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
   );
-  $items['user/%user/affiliate/commisssions'] = array(
+  $items['user/%user/affiliate/commissions'] = array(
     'title' => 'Commissions',
     'page callback' => 'uc_affiliate2_commissions',
     'type' => MENU_LOCAL_TASK,
