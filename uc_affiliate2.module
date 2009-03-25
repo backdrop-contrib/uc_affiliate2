@@ -340,7 +340,7 @@ function _uc_affiliate2_product_form_submit($form, &$form_state) {
   }
 
   if (count($show_these) > 0) {
-    if ($form_state['export_type'] == 'csv') {
+    if ($form_state['values']['export_type'] == 'csv') {
       drupal_set_header("Content-Type: application/csv; charset=\"utf-8\"\n");
       drupal_set_header('Content-Disposition: attachment; filename="export.csv"');
 
@@ -555,11 +555,11 @@ function uc_affiliate2_admin_settings() {
       '#default_value' => variable_get('affiliate_commission_structure_'. $rid, '5,3,2,2,1'),
       '#size' => 10
     );
-    $form['affiliate_settings_role_'. $rid]['affiliate_comission_'. $rid .'_switch_after'] = array(
+    $form['affiliate_settings_role_'. $rid]['affiliate_commission_'. $rid .'_switch_after'] = array(
       '#type' => 'textfield',
       '#title' => t('Switch to comission settings per role after'),
       '#description' => t('Time after which the per role comission structure settings will be used, instead of the default ones. Strtotime syntax.'),
-      '#default_value' => variable_get('affiliate_comission_'. $rid .'_switch_after', '2 days'),
+      '#default_value' => variable_get('affiliate_commission_'. $rid .'_switch_after', '2 days'),
      );
     $form['affiliate_settings_role_'. $rid]['affiliate_set_cookie_'. $rid] = array(
       '#type' => 'checkbox',
@@ -1616,10 +1616,10 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
   }
 
   if (!empty($_SESSION['affiliate_cookie_timestamp'])) {
-    $switch_after = variable_get('affiliate_commission_'. $_SESSION['affiliate_rid'] .'_switch_after', '5,3,2,2,1');
+    $switch_after = variable_get('affiliate_commission_'. $_SESSION['affiliate_rid'] .'_switch_after', '2 days');
     $now = time();
 
-    if ($now - $_SESSION['affiliate_cookie_timestamp'] >= $switch_after) {
+    if ($now >= strtotime($switch_after, $_SESSION['affiliate_cookie_timestamp'])) {
       $structure = variable_get('affiliate_commission_structure_'. $_SESSION['affiliate_rid'], '5,3,2,2,1');
     }
     else {
