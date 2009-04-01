@@ -2,7 +2,7 @@ CHANGELOG for uc_affiliate2 module
 
 Version 2.0
 ***********
-2009/03/20
+2009/04/02
 Rewrites & cleanups all over the place.
 -- port to drupal6/ubercart2.
 -- rewrote menu code.
@@ -11,3 +11,5 @@ Rewrites & cleanups all over the place.
 -- new date&time handling code, fixes issues on some configurations.
 -- removed old timezone handling code. Handling it the drupal way.
 -- reworked the monthly_report admin_users functions. They were ugly & slow (N+1 queries problem)
+-- you can now select multiple statuses for which to award commissions.
+-- cancelling an order ( or changing from an "award" status) will now remove the commission.

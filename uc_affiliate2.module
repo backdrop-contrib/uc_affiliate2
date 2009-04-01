@@ -520,10 +520,10 @@ function uc_affiliate2_admin_settings() {
     $statuses[$status['id']] = $status['title'];
   }
   $form['affiliate_commission_order_status'] = array(
-    '#type' => 'select',
+    '#type' => 'checkboxes',
     '#title' => t('Order status'),
     '#default_value' => variable_get('affiliate_commission_order_status', 'completed'),
-    '#description' => t('Where in the order status that commissions will be assigned.'),
+    '#description' => t('Where in the order status(es) will the commissions be assigned.'),
     '#options' => $statuses,
   );
   $form['affiliate_invalid_redirect'] = array(
@@ -868,7 +868,8 @@ function uc_affiliate2_monthly_report() {
  * Increment affiliate counts
  */
 function uc_affiliate2_add_count($aff, $clicks = 0, $users = 0, $orders = 0) {
-  $time = time();
+  $date = date('Y/m/d');
+  $time = strtotime($date);
 
   if ($clicks > 0) {
     db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $aff, $time);
@@ -880,6 +881,23 @@ function uc_affiliate2_add_count($aff, $clicks = 0, $users = 0, $orders = 0) {
   }
   else {
     db_query('INSERT {uc_affiliate2_counts} (aid, clicks, users, orders, time) VALUES (%d, %d, %d, %d, %d)', $aff, $clicks, $users, $orders, $time);
+  }
+}
+
+/*
+ * Decrement affiliate counts ( used for removing commissions). Used for hook_order
+ */
+function uc_affiliate2_remove_count($aff, $clicks = 0, $users = 0, $orders = 0, $time) {
+  $date = date('Y/m/d', $time);
+  $time = strtotime($date);
+
+  if ($clicks > 0) {
+    db_query('DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d AND time = %d', $aff, $time);
+  }
+
+  $res = db_fetch_object(db_query('SELECT * FROM {uc_affiliate2_counts} WHERE aid=%d AND time=%d', $aff, $time));
+  if ($res && $res->time) {
+    db_query('UPDATE {uc_affiliate2_counts} SET clicks=(clicks-%d), users=(users-%d), orders=(orders-%d) WHERE aid=%d AND time=%d', $clicks, $users, $orders, $aff, $time);
   }
 }
 
@@ -1255,7 +1273,10 @@ function uc_affiliate2_add_to_cart_data($form_values) {
 function uc_affiliate2_order($op, $order, $status) {
   global $user;
 
-  if ($op == 'update' && $status == variable_get('affiliate_commission_order_status', 'completed')) {
+  $statuses = variable_get('affiliate_commission_order_status', 'completed');
+
+  // give commissions
+  if ($op == 'update' && $statuses[$status]) {
     // order ready for commission assignment
     // find all affiliates included in order
     $affcom = array();
@@ -1288,6 +1309,17 @@ function uc_affiliate2_order($op, $order, $status) {
         }
       }
     }
+  }
+
+  // take commissions ( moving from a "give commissions" status to a one that doesn't have that privillege)
+  if($op == 'update' && $statuses[$order->order_status] && $status && !$statuses[$status]) {
+    $result = db_query("SELECT aid FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
+    $affiliate = db_fetch_array($result);
+
+    db_query("DELETE FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
+    db_query("DELETE FROM {uc_order_admin_comments} WHERE order_id = %d AND message LIKE '%Level _ commission %'", $order->order_id);
+
+    uc_affiliate2_remove_count($affiliate['aid'], 0, 0, 1, $order->created);
   }
 }
 
