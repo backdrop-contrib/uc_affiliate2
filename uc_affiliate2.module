@@ -1067,17 +1067,21 @@ function uc_affiliate2_commissions() {
 
   // setup the table
   $header = array(
-    array('data' => t('Customer'), 'field' => 'uid'),
+    array('data' => t('Customer')),
     array('data' => t('Order'), 'field' => 'order_id', 'sort' => 'desc'),
     array('data' => t('Date'), 'field' => 'order_date'),
-    array('data' => t('Notes'), 'field' => 'commission_notes'),
-    array('data' => t('Purchase'), 'field' => 'purchase'),
+    array('data' => t('Notes')),
+    array('data' => t('Purchase'), 'field' => 'order_total'),
     array('data' => t('Commission'), 'field' => "commission"),
   );
 
   // Create sql to affiliate's commissions
   $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
+  $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission
+            FROM {uc_affiliate2_commission} ac
+              INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
+                WHERE aid = '. $account->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
+  $sql .= tablesort_sql($header);
   $result = db_query($sql);
 
   $total_sales = 0;
