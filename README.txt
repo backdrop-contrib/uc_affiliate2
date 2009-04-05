@@ -40,6 +40,7 @@ Upgrading from 2.0-rc1 and 2.0-rc2
 - Commission cancellation (for previously added orders) might leave incorrect admin counters, because of a earlier time&date bug
 - The orders counter works only for orders added after the upgrade
 - The "All orders" tab shows only the orders added after the upgrade.
+- Be sure to run update.php!
 
 Sponsors
 ********
