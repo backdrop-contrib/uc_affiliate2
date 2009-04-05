@@ -734,7 +734,7 @@ function uc_affiliate2_admin_users_paid_form($form_state, $amount, $uid, $date) 
   return $form;
 }
 
-function uc_affiliate2_admin_users_paid_validate($form, &$form_state) {
+function uc_affiliate2_admin_users_paid_form_validate($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
   $amount = $form_state['values']['amount'];
 
@@ -749,7 +749,7 @@ function uc_affiliate2_admin_users_paid_validate($form, &$form_state) {
   }
 }
 
-function uc_affiliate2_admin_users_paid_submit($form, &$form_state) {
+function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
   $sign = variable_get('uc_currency_sign', '$');
   $amount = $form_state['values']['amount'];
   $uid = $form_state['values']['uid'];
