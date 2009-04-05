@@ -117,14 +117,21 @@ function uc_affiliate2_menu() {
     'access arguments' => array(1),
     '#weight' => 3
   );
-
+  $items['user/%user/affiliate/orders'] = array(
+    'title' => 'All Orders',
+    'page callback' => 'uc_affiliate2_orders',
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => '_uc_affiliate2_user_access',
+    'access arguments' => array(1),
+    '#weight' => 4
+  );
   $items['user/%user/affiliate/downline'] = array(
     'title' => 'Downline',
     'page callback' => 'uc_affiliate2_downline',
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1, 'hierarchy'),
-    '#weight' => 4
+    '#weight' => 5
   );
   $items['user/%user/affiliate/upline'] = array(
     'title' => 'Upline',
@@ -132,7 +139,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1, 'hierarchy'),
-    '#weight' => 5
+    '#weight' => 6
   );
 
   //add item to node-form to adjust commissions by product
@@ -864,43 +871,6 @@ function uc_affiliate2_monthly_report() {
   return $output;
 }
 
-/*
- * Increment affiliate counts
- */
-function uc_affiliate2_add_count($aff, $clicks = 0, $users = 0, $orders = 0) {
-  $date = date('Y/m/d');
-  $time = strtotime($date);
-
-  if ($clicks > 0) {
-    db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $aff, $time);
-  }
-
-  $res = db_fetch_object(db_query('SELECT * FROM {uc_affiliate2_counts} WHERE aid=%d AND time=%d', $aff, $time));
-  if ($res && $res->time) {
-    db_query('UPDATE {uc_affiliate2_counts} SET clicks=(clicks+%d), users=(users+%d), orders=(orders+%d) WHERE aid=%d AND time=%d', $clicks, $users, $orders, $aff, $time);
-  }
-  else {
-    db_query('INSERT {uc_affiliate2_counts} (aid, clicks, users, orders, time) VALUES (%d, %d, %d, %d, %d)', $aff, $clicks, $users, $orders, $time);
-  }
-}
-
-/*
- * Decrement affiliate counts ( used for removing commissions). Used for hook_order
- */
-function uc_affiliate2_remove_count($aff, $clicks = 0, $users = 0, $orders = 0, $time) {
-  $date = date('Y/m/d', $time);
-  $time = strtotime($date);
-
-  if ($clicks > 0) {
-    db_query('DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d AND time = %d', $aff, $time);
-  }
-
-  $res = db_fetch_object(db_query('SELECT * FROM {uc_affiliate2_counts} WHERE aid=%d AND time=%d', $aff, $time));
-  if ($res && $res->time) {
-    db_query('UPDATE {uc_affiliate2_counts} SET clicks=(clicks-%d), users=(users-%d), orders=(orders-%d) WHERE aid=%d AND time=%d', $clicks, $users, $orders, $aff, $time);
-  }
-}
-
 /**
  * Implementation of hook_user()
  */
@@ -911,7 +881,7 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
       $aff = $_SESSION['affiliate'];
       if ($aff) {
         db_query('INSERT INTO {uc_affiliate2_users} (aid, uid) VALUES (%d, %d)', $aff, $user->uid);
-        uc_affiliate2_add_count($aff, 0, 1, 0);
+
         watchdog('user', 'User %name referred by user id %affiliate', array('%name' => theme('username', $user), '%affiliate' => theme('placeholder', $aff)));
       }
       break;
@@ -1145,6 +1115,50 @@ function uc_affiliate2_clicks() {
 }
 
 /*
+ * Display affiliate orders by status
+ */
+function uc_affiliate2_orders() {
+  drupal_set_title(t('All Orders'));
+
+  $account = user_load(array('uid' => arg(1)));
+
+  // setup the table
+  $header = array(
+    array('data' => t('Customer')),
+    array('data' => t('Order'), 'field' => 'ao.order_id', 'sort' => 'desc'),
+    array('data' => t('Order Status'), 'field' => 'order_status'),
+    array('data' => t('Date'), 'field' => 'created'),
+    array('data' => t('Purchase'), 'field' => 'order_total'),
+  );
+
+  // Create sql to affiliate's commissions
+  $dates = _uc_affiliate2_predefined_range(arg(4));
+  $sql = 'SELECT uco.*, ao.order_id
+            FROM {uc_affiliate2_orders} ao INNER JOIN {uc_orders} uco on ao.order_id = uco.order_id
+              WHERE ao.aid = '. $account->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
+  $sql .= tablesort_sql($header);
+  $result = db_query($sql);
+
+  $total_sales = 0;
+  while ($order = db_fetch_array($result)) {
+    $u = l($order['billing_first_name'] .' '. $order['billing_last_name'], 'user/'. $order['uid']);
+    $rows[] = array(
+      $u,
+      $order['order_id'],
+      ucwords(str_replace('_', ' ', $order['order_status'])),
+      format_date($order['created'], 'custom', 'm-d-Y'),
+      uc_currency_format($order['order_total']),
+    );
+    $total_sales += $order['order_total'];
+  }
+  $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales));
+
+  $output = theme('table', $header, $rows);
+
+  return $output;
+}
+
+/*
  * Display affiliate's downline
  */
 function uc_affiliate2_downline($level = 1) {
@@ -1279,6 +1293,12 @@ function uc_affiliate2_order($op, $order, $status) {
 
   $statuses = variable_get('affiliate_commission_order_status', 'completed');
 
+  if($op == 'new') {
+    db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $_SESSION['affiliate'], $order->order_id);
+  } else if($op == 'delete') {
+    db_query("DELETE FROM {uc_affiliate2_orders} WHERE order_id = %d", $order->order_id);
+  }
+
   // give commissions
   if ($op == 'update' && $statuses[$status]) {
     // order ready for commission assignment
@@ -1309,7 +1329,6 @@ function uc_affiliate2_order($op, $order, $status) {
           $note = t('Level @level commission of @percent% recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
           db_query("INSERT {uc_affiliate2_commission} (order_id, aid, commission, commission_notes) VALUES (%d, %d, %f, '%s')", $order->order_id, $aff, $comm, $note);
           uc_order_comment_save($order->order_id, $user->uid, $note);
-          uc_affiliate2_add_count($aff, 0, 0, 1);
         }
       }
     }
@@ -1323,7 +1342,10 @@ function uc_affiliate2_order($op, $order, $status) {
     db_query("DELETE FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
     db_query("DELETE FROM {uc_order_admin_comments} WHERE order_id = %d AND message LIKE '%Level _ commission %'", $order->order_id);
 
-    uc_affiliate2_remove_count($affiliate['aid'], 0, 0, 1, $order->created);
+    $date = date('Y/m/d', $order->created);
+    $time = strtotime($date);
+
+    db_query('DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d AND time = %d', $affiliate['aid'], $time);
   }
 }
 
@@ -1578,7 +1600,13 @@ function _uc_affiliate2_clicked($account) {
     // store affiliate id in session and increment click count
     if (!$_SESSION['affiliate']) {
       $_SESSION['affiliate'] = $account->uid;
-      uc_affiliate2_add_count($account->uid, 1, 0, 0);
+
+      $date = date('Y/m/d');
+      $time = strtotime($date);
+
+      if ($clicks > 0) {
+        db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $account->uid, $time);
+      }
     }
 
     // Get the affiliate role (only the last one)

@@ -34,6 +34,13 @@ You can enable it from the Affiliate Settings page in Ubercart admin.
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
 
+Upgrading from 2.0-rc1 and 2.0-rc2
+**********************************
+- You must resave your affilite settings for the commission cancellation to work
+- Commission cancellation (for previously added orders) might leave incorrect admin counters, because of a earlier time&date bug
+- The orders counter works only for orders added after the upgrade
+- The "All orders" tab shows only the orders added after the upgrade.
+
 Sponsors
 ********
 Aaron Schiff (http://www.ecopaper.com/)

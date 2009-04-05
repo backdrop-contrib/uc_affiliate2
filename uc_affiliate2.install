@@ -6,16 +6,16 @@
  */
 function uc_affiliate2_schema() {
   $schema['uc_affiliate2_users'] = array(
-    'description' => t('TODO'),
+    'description' => t('Which affiliate referred a user to the site'),
     'fields' => array(
       'aid' => array(
-        'description' => t('TODO'),
+        'description' => t('Affiliate ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
       'uid' => array(
-        'description' => t('TODO'),
+        'description' => t('New user ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
@@ -24,60 +24,40 @@ function uc_affiliate2_schema() {
     'primary key' => array('aid', 'uid'),
   );
 
-  $schema['uc_affiliate2_counts'] = array(
-    'description' => t('TODO'),
+  $schema['uc_affiliate2_orders'] = array(
+    'description' => t('Orders made with a specific affiliate id'),
     'fields' => array(
       'aid' => array(
-        'description' => t('TODO'),
+        'description' => t('Affiliate ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
-      'clicks' => array(
-        'description' => t('TODO'),
-        'type' => 'int',
-        'unsigned' => 1,
-        'not null' => TRUE,
-      ),
-      'users' => array(
-        'description' => t('TODO'),
-        'type' => 'int',
-        'unsigned' => 1,
-        'not null' => TRUE,
-      ),
-      'orders' => array(
-        'description' => t('TODO'),
-        'type' => 'int',
-        'unsigned' => 1,
-        'not null' => TRUE,
-      ),
-      'time' => array(
-        'description' => t('TODO'),
+      'order_id' => array(
+        'description' => t('Order ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('aid', 'time'),
+    'primary key' => array('aid', 'order_id'),
   );
 
   $schema['uc_affiliate2_clicks'] = array(
-    'description' => t('TODO'),
+    'description' => t('Unique Clicks, by affiliate'),
     'fields' => array(
       'click_id' => array(
-        'description' => t('TODO'),
         'type' => 'serial',
         'size' => 'medium',
         'not null' => TRUE,
       ),
       'aid' => array(
-        'description' => t('TODO'),
+        'description' => t('Affiliate ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
       'time' => array(
-        'description' => t('TODO'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
@@ -87,34 +67,31 @@ function uc_affiliate2_schema() {
   );
 
   $schema['uc_affiliate2_commission'] = array(
-    'description' => t('TODO'),
+    'description' => t('Where we track affiliate commissions'),
     'fields' => array(
       'commission_id' => array(
-        'description' => t('TODO'),
         'type' => 'serial',
         'size' => 'big',
         'not null' => TRUE,
       ),
       'order_id' => array(
-        'description' => t('TODO'),
         'type' => 'int',
         'size' => 'big',
         'not null' => FALSE,
       ),
       'aid' => array(
-        'description' => t('TODO'),
+        'description' => t('Affiliate ID'),
         'type' => 'int',
         'size' => 'big',
         'not null' => FALSE,
       ),
       'commission' => array(
-        'description' => t('TODO'),
+        'description' => t('Commission amount'),
         'type' => 'float',
         'size' => 'big',
         'not null' => FALSE,
       ),
       'commission_notes' => array(
-        'description' => t('TODO'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
@@ -124,22 +101,20 @@ function uc_affiliate2_schema() {
   );
 
   $schema['uc_affiliate2_paid'] = array(
-    'description' => t('TODO'),
+    'description' => t('Where we track affiliate commission payments'),
     'fields' => array(
       'aid' => array(
-        'description' => t('TODO'),
+        'description' => t('Affiliate ID'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
       'date' => array(
-        'description' => t('TODO'),
         'type' => 'int',
         'unsigned' => 1,
         'not null' => TRUE,
       ),
       'amount' => array(
-        'description' => t('TODO'),
         'type' => 'float',
         'size' => 'big',
         'not null' => TRUE,
@@ -148,16 +123,14 @@ function uc_affiliate2_schema() {
   );
 
   $schema['uc_affiliate2_product_commission'] = array(
-    'description' => t('TODO'),
+    'description' => t('Where we store product level comissions, if any'),
     'fields' => array(
       'nid' => array(
-        'description' => t('TODO'),
         'type' => 'int',
         'size' => 'medium',
         'not null' => TRUE,
       ),
       'commission_structure' => array(
-        'description' => t('TODO'),
         'type' => 'text',
         'size' => 'big',
         'not null' => TRUE,
@@ -223,7 +196,7 @@ function uc_affiliate2_install() {
         ) /*!40100 DEFAULT CHARACTER SET utf8 */
       ");
       break;
-    
+
     case 'pgsql':
       break;
   }
@@ -231,7 +204,7 @@ function uc_affiliate2_install() {
 
 /**
  * Implementation of hook_uninstall().
- */ 
+ */
 function uc_affiliate2_uninstall() {
   // Remove tables.
   drupal_uninstall_schema('uc_affiliate2');
