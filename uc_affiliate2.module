@@ -48,7 +48,7 @@ function uc_affiliate2_menu() {
   $items['admin/store/affiliate/manage'] = array(
     'title' => 'Manage',
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    '#weight' => -10,
+    'weight' => -10,
     'access arguments' => $access
   );
   $items['admin/store/affiliate/settings'] = array(
@@ -76,7 +76,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => -9
+    'weight' => -9
   );
   $items['user/%user/affiliate/dashboard'] = array(
     'title' => 'Dashboard',
@@ -84,7 +84,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => 0
+    'weight' => 0
   );
   $items['user/%user/affiliate/links'] = array(
     'title' => 'Generate Links',
@@ -92,7 +92,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => 1
+    'weight' => 1
   );
   $items['user/%user/affiliate/links/export'] = array(
     'title' => 'Export Products - HTML',
@@ -107,7 +107,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => 2
+    'weight' => 2
   );
   $items['user/%user/affiliate/clicks'] = array(
     'title' => 'Unique Click Count',
@@ -115,7 +115,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => 3
+    'weight' => 3
   );
   $items['user/%user/affiliate/orders'] = array(
     'title' => 'All Orders',
@@ -123,7 +123,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
-    '#weight' => 4
+    'weight' => 4
   );
   $items['user/%user/affiliate/downline'] = array(
     'title' => 'Downline',
@@ -131,7 +131,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1, 'hierarchy'),
-    '#weight' => 5
+    'weight' => 5
   );
   $items['user/%user/affiliate/upline'] = array(
     'title' => 'Upline',
@@ -139,7 +139,7 @@ function uc_affiliate2_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1, 'hierarchy'),
-    '#weight' => 6
+    'weight' => 6
   );
 
   //add item to node-form to adjust commissions by product
