@@ -1604,9 +1604,7 @@ function _uc_affiliate2_clicked($account) {
       $date = date('Y/m/d');
       $time = strtotime($date);
 
-      if ($clicks > 0) {
-        db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $account->uid, $time);
-      }
+      db_query('INSERT INTO {uc_affiliate2_clicks} (aid, time) VALUES (%d, %d)', $account->uid, $time);
     }
 
     // Get the affiliate role (only the last one)
