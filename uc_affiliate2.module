@@ -1132,10 +1132,9 @@ function uc_affiliate2_orders() {
   );
 
   // Create sql to affiliate's commissions
-  $dates = _uc_affiliate2_predefined_range(arg(4));
   $sql = 'SELECT uco.*, ao.order_id
             FROM {uc_affiliate2_orders} ao INNER JOIN {uc_orders} uco on ao.order_id = uco.order_id
-              WHERE ao.aid = '. $account->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
+              WHERE ao.aid = '. $account->uid;
   $sql .= tablesort_sql($header);
   $result = db_query($sql);
 
