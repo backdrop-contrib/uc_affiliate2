@@ -1293,7 +1293,7 @@ function uc_affiliate2_order($op, $order, $status) {
 
   $statuses = variable_get('affiliate_commission_order_status', 'completed');
 
-  if($op == 'new') {
+  if($op == 'new' && $_SESSION['affiliate']) {
     db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $_SESSION['affiliate'], $order->order_id);
   } else if($op == 'delete') {
     db_query("DELETE FROM {uc_affiliate2_orders} WHERE order_id = %d", $order->order_id);

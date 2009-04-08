@@ -162,3 +162,11 @@ function uc_affiliate2_update_1() {
 
   return $items;
 }
+
+// a bug created rows even when there was no aid
+function uc_affiliate2_update_2() {
+  $items = array();
+  $items[] = update_sql("DELETE FROM {uc_affiliate2_orders} WHERE aid = 0");
+
+  return $items;
+}
