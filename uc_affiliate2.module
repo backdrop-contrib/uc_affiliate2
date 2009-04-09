@@ -609,6 +609,28 @@ function uc_affiliate2_admin_manage() {
     return uc_affiliate2_admin_users($user_id);
   }
 
+  $clicks = array();
+  $users = array();
+  $orders = array();
+
+  $result = db_query("SELECT aid, COUNT(click_id) as clicks FROM {uc_affiliate2_clicks} GROUP BY aid");
+
+  while($count = db_fetch_array($result)) {
+    $clicks[$count['aid']] = $count['clicks'];
+  }
+
+  $result = db_query("SELECT aid, COUNT(aid) as users FROM {uc_affiliate2_users} GROUP BY aid");
+
+  while($count = db_fetch_array($result)) {
+    $users[$count['aid']] = $count['users'];
+  }
+
+  $result = db_query("SELECT aid, COUNT(aid) as orders FROM {uc_affiliate2_orders} GROUP BY aid");
+
+  while($count = db_fetch_array($result)) {
+    $orders[$count['aid']] = $count['orders'];
+  }
+
   // setup the table
   $header = array(
     array('data' => t('Username'), 'field' => 'u.name'),
@@ -621,13 +643,11 @@ function uc_affiliate2_admin_manage() {
   );
 
   // define the query
-  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, ac.time,
-          SUM(ac.clicks) AS clicks, SUM(ac.users) AS users, SUM(ac.orders) AS orders
+  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
             FROM {users} u
-              LEFT OUTER JOIN {users_roles} ur ON u.uid = ur.uid
-              LEFT OUTER JOIN {uc_affiliate2_counts} ac ON u.uid = ac.aid
-                WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%')
-                GROUP BY u.uid";
+              INNER JOIN {users_roles} ur ON u.uid = ur.uid
+                  WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%')
+                    GROUP BY u.uid";
 
   $sql .= tablesort_sql($header);
   $result = db_query($sql);
@@ -640,15 +660,16 @@ function uc_affiliate2_admin_manage() {
       $status[$account->status],
       format_interval(time() - $account->created),
       $account->access ? t('@time ago', array('@time' => format_interval(time() - $account->access))) : t('never'),
-      $account->clicks ? $account->clicks : '0',
-      $account->users ? $account->users : '0',
-      $account->orders ? $account->orders : '0',
+      $clicks[$account->uid] ? $clicks[$account->uid] : '0',
+      $users[$account->uid] ? $users[$account->uid] : '0',
+      $orders[$account->uid] ? $orders[$account->uid] : '0',
     );
   }
 
   $output = "<p>". t("Click on an affiliate user to view their monthly sales and commissions.");
   $output .= theme('table', $header, $rows);
   $output .= theme('pager', NULL, 50, 0);
+  
   return $output;
 }
 
