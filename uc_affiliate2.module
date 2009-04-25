@@ -669,7 +669,7 @@ function uc_affiliate2_admin_manage() {
   $output = "<p>". t("Click on an affiliate user to view their monthly sales and commissions.");
   $output .= theme('table', $header, $rows);
   $output .= theme('pager', NULL, 50, 0);
-  
+
   return $output;
 }
 
@@ -1161,7 +1161,12 @@ function uc_affiliate2_orders() {
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
-    $u = l($order['billing_first_name'] .' '. $order['billing_last_name'], 'user/'. $order['uid']);
+    if($order['uid'] > 0) {
+      $u = l($order['billing_first_name'] .' '. $order['billing_last_name'], 'user/'. $order['uid']);
+    } else {
+      $u = $order['billing_first_name'] .' '. $order['billing_last_name'];
+    }
+
     $rows[] = array(
       $u,
       $order['order_id'],
@@ -1320,7 +1325,7 @@ function uc_affiliate2_order($op, $order, $status) {
   }
 
   // give commissions
-  if ($op == 'update' && $statuses[$status]) {
+  if ($op == 'update' && $statuses[$status] && !$statuses[$order->order_status]) {
     // order ready for commission assignment
     // find all affiliates included in order
     $affcom = array();
@@ -1360,7 +1365,9 @@ function uc_affiliate2_order($op, $order, $status) {
     $affiliate = db_fetch_array($result);
 
     db_query("DELETE FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
-    db_query("DELETE FROM {uc_order_admin_comments} WHERE order_id = %d AND message LIKE '%Level _ commission %'", $order->order_id);
+
+    $note = t('Removed commission recorded for affiliate uid: @affiliate', array('@affiliate' => $affiliate['aid']));
+    uc_order_comment_save($order->order_id, $user->uid, $note);
 
     $date = date('Y/m/d', $order->created);
     $time = strtotime($date);
