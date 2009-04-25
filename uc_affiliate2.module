@@ -529,7 +529,7 @@ function uc_affiliate2_admin_settings() {
   $form['affiliate_commission_order_statuses'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Order status'),
-    '#default_value' => variable_get('affiliate_commission_order_statuses', 'completed'),
+    '#default_value' => variable_get('affiliate_commission_order_statuses', array('completed' => 'completed')),
     '#description' => t('Where in the order status(es) will the commissions be assigned.'),
     '#options' => $statuses,
   );
@@ -1316,7 +1316,7 @@ function uc_affiliate2_add_to_cart_data($form_values) {
 function uc_affiliate2_order($op, $order, $status) {
   global $user;
 
-  $statuses = variable_get('affiliate_commission_order_statuses', 'completed');
+  $statuses = variable_get('affiliate_commission_order_statuses', array('completed' => 'completed'));
 
   if($op == 'new' && $_SESSION['affiliate']) {
     db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $_SESSION['affiliate'], $order->order_id);
