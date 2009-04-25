@@ -1610,7 +1610,7 @@ function uc_affiliate2_click($username = '') {
       $path = '<front>';
     }
 
-    drupal_goto($path);
+    drupal_goto($path, null, null, 301);
   }
   else if ($found_affiliate === FALSE) { // invalid affiliate id
     $default_url = variable_get('affiliate_invalid_redirect', '<front>');
