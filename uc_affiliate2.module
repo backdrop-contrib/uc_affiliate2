@@ -1368,11 +1368,6 @@ function uc_affiliate2_order($op, $order, $status) {
 
     $note = t('Removed commission recorded for affiliate uid: @affiliate', array('@affiliate' => $affiliate['aid']));
     uc_order_comment_save($order->order_id, $user->uid, $note);
-
-    $date = date('Y/m/d', $order->created);
-    $time = strtotime($date);
-
-    db_query('DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d AND time = %d', $affiliate['aid'], $time);
   }
 }
 
