@@ -117,6 +117,13 @@ function uc_affiliate2_menu() {
     'access arguments' => array(1),
     'weight' => 3
   );
+  $items['user/%user/affiliate/clicks/details'] = array(
+    'title' => 'Unique Clicks - Details',
+    'page callback' => 'uc_affiliate2_click_details',
+    'type' => MENU_CALLBACK,
+    'access callback' => '_uc_affiliate2_user_access',
+    'access arguments' => array(1),
+  );
   $items['user/%user/affiliate/orders'] = array(
     'title' => 'All Orders',
     'page callback' => 'uc_affiliate2_orders',
@@ -1082,7 +1089,7 @@ function uc_affiliate2_commissions() {
     $rows[] = array(
       $u,
       $commission['order_id'],
-      format_date($commission['order_date'], 'custom', 'm-d-Y'),
+      format_date($commission['order_date'], 'custom', 'Y/m/d'),
       $commission['commission_notes'],
       uc_currency_format($commission['order_total']),
       uc_currency_format($commission['commission'])
@@ -1121,7 +1128,9 @@ function uc_affiliate2_clicks() {
 
   $total_clicks = 0;
   while ($click_day = db_fetch_array($result)) {
-    $rows[] = array(format_date($click_day['click_date'], 'custom', 'm-d-Y'), $click_day['clicks']);
+    $link = l(format_date($click_day['click_date'], 'custom', 'Y/m/d'), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_day['click_date']);
+
+    $rows[] = array($link, $click_day['clicks']);
     $total_clicks += $click_day['clicks'];
   }
   $rows[] = array(t('Total:'), $total_clicks);
@@ -1131,6 +1140,59 @@ function uc_affiliate2_clicks() {
 
   $output = theme('table', $header, $rows);
   $output .= drupal_get_form('uc_affiliate2_time_selection_form');
+
+  return $output;
+}
+
+/*
+ * Display a detailed clicks view for the selected date
+ */
+function uc_affiliate2_click_details() {
+  drupal_set_title(t('Unique Clicks - Details'));
+
+  $account = user_load(array('uid' => arg(1)));
+  $cookie_statuses = array('Not sent', 'Sent (Unconfirmed)', 'Sent (Confirmed)');
+
+  $output = 'Viewing clicks for: ' . format_date(arg(5), 'custom', 'Y/m/d') . '<br /> <br />';
+  $output .= 'Cookie Status can be: Not sent, Sent (Unconfirmed), Sent (Confirmed). <br />';
+
+  // setup the table
+  $header = array(
+    array('data' => t('Date/Time'), 'field' => "time", 'sort' => 'desc'),
+    array('data' => t('Client IP'), 'field' => "client_ip"),
+    array('data' => t('Referrer'), 'field' => "referrer"),
+    array('data' => t('Destination'), 'field' => "destination"),
+    array('data' => t('Cookie Status'), 'field' => "cookie_status"),
+  );
+
+  // Create sql to display level of affiliate specified
+  $start = arg(5);
+
+  $dates['start'] = mktime(00, 00, 00, date("m", $start) , date("d", $start), date("Y", $start));
+  $dates['end'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+
+  $sql = "SELECT * FROM {uc_affiliate2_clicks} WHERE aid = ". $account->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'];
+
+  $sql .= tablesort_sql($header);
+  $result = db_query($sql);
+
+  $total_clicks = 0;
+  while ($click = db_fetch_array($result)) {
+    $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d'),
+                    $click['client_ip'] ? $click['client_ip'] : 'N/A',
+                    $click['referrer'] ? $click['referrer'] : 'N/A',
+                    $click['destination'] ? $click['destination']  : 'Not specified',
+                    ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
+                    );
+
+    $total_clicks += 1;
+  }
+  $rows[] = array(t('Total:'), $total_clicks);
+
+  // Build the output
+  global $pager_total_items;
+
+  $output .= theme('table', $header, $rows);
 
   return $output;
 }
@@ -1603,6 +1665,11 @@ function uc_affiliate2_click($username = '') {
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
   }
 
+  if($_COOKIE['affiliate']['update_click']) {
+    db_query("UPDATE {uc_affiliate2_clicks} SET cookie_status = 2 WHERE aid = %d AND time = %d", $_COOKIE['affiliate']['uid'], $_COOKIE['affiliate']['timestamp']);
+    setcookie('affiliate[update_click]', 1, time() - 3600, '/');
+  }
+
   if ($found_affiliate === TRUE) {
     drupal_goto($goto, null, null, 301);
   }
@@ -1638,9 +1705,10 @@ function _uc_affiliate2_clicked($account, $target_path) {
     $cookie_lifetime = variable_get('affiliate_cookie_lifetime_'. $rid, '1 year');
     $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
 
-    setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');//, '.'. $domain);
-    setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');//, '.'. $domain);
-    setcookie('affiliate[timestamp]', $time, $cookie_lifetime, '/');//, '.'. $domain);
+    setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');
+    setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');
+    setcookie('affiliate[timestamp]', $time, $cookie_lifetime, '/');
+    setcookie('affiliate[update_click]', 1, $cookie_lifetime, '/');
   }
 
   // store affiliate id in session and increment click count
