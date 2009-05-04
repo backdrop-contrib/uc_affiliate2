@@ -15,4 +15,5 @@ Rewrites & cleanups all over the place.
 -- cancelling an order ( or changing from an "award" status) will now remove the commission.
 -- removed the counts table, running live queries now. Less bug-prone.
 -- added the "all orders" tab to the affiliate dashboard. Shows all orders by status created with the affiliate's id.
+-- added a more detailed unique clicks view, displaying user ip, if the cookie was set, etc.
 -- many bugfixes.
