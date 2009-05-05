@@ -2,7 +2,7 @@ CHANGELOG for uc_affiliate2 module
 
 Version 2.0
 ***********
-2009/04/0
+2009/05/06
 Rewrites & cleanups all over the place.
 -- port to drupal6/ubercart2.
 -- rewrote menu code.
@@ -16,4 +16,4 @@ Rewrites & cleanups all over the place.
 -- removed the counts table, running live queries now. Less bug-prone.
 -- added the "all orders" tab to the affiliate dashboard. Shows all orders by status created with the affiliate's id.
 -- added a more detailed unique clicks view, displaying user ip, if the cookie was set, etc.
--- many bugfixes.
+-- many bugfixes and smaller changes.
