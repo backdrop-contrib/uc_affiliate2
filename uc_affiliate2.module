@@ -120,7 +120,7 @@ function uc_affiliate2_menu() {
   $items['user/%user/affiliate/clicks/details'] = array(
     'title' => 'Unique Clicks - Details',
     'page callback' => 'uc_affiliate2_click_details',
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
     'access arguments' => array(1),
   );
@@ -1185,7 +1185,7 @@ function uc_affiliate2_click_details() {
     $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d'),
                     $click['client_ip'] ? $click['client_ip'] : 'N/A',
                     $click['referrer'] ? $click['referrer'] : 'N/A',
-                    $click['destination'] ? $click['destination']  : 'Not specified',
+                    $click['destination'] ? $click['destination']  : 'Frontpage',
                     ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
                     );
 
