@@ -481,7 +481,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
       case "html":
         $image = ($image == 'N/A') ? $GLOBALS['base_url'] .'/misc/watchdog-error.png' : $image;
-        $products[$title] = str_replace(array('[LINK]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $image, $description, $product->sell_price), $template);
+        $products[$title] = str_replace(array('[LINK]', '[TITLE]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $title, $image, $description, $product->sell_price), $template);
       break;
     }
   }
@@ -512,7 +512,8 @@ function uc_affiliate2_admin_settings() {
   $form['affiliate_product_html_template'] = array(
     '#type' => 'textarea',
     '#title' => t('Affiliate Product HTML Template (used for Export)'),
-    '#description' => t('When using the html export function in the affiliate panel, this template is used for each product.'),
+    '#description' => t('When using the html export function in the affiliate panel, this template is used for each product.
+                        Allowed placeholders: [LINK], [TITLE], [IMG], [DESCRIPTION], [PRICE].'),
     '#default_value' => variable_get('affiliate_product_html_template', '<div id="prodcontain"><a href="[LINK]"><img src="[IMG]"></a><br /><div id="description">description:</div>[DESCRIPTION]<br /><div id="price">[PRICE]</div></div>'),
   );
   $form['affiliate_hierarchy_depth'] = array(
@@ -1039,7 +1040,10 @@ function uc_affiliate2_dashboard() {
 
   $output .= '</div>';
 
-  $output .= '<br /><div id="affiliate-links-header"><h2>'. t('Affiliate Links') .'</h2><br />';
+  $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2>';
+  $output .= 'You can append a destination page to the end of the affiliate links to redirect to a specific page,
+              as well as track clicks to it, i.e.
+              example.com/affiliate/' . $account->name . '/node/1 <br /> <br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
   $text_link = l($text_link, 'affiliate/'. $account->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
