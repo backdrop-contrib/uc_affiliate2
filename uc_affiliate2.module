@@ -1182,10 +1182,10 @@ function uc_affiliate2_click_details() {
 
   $total_clicks = 0;
   while ($click = db_fetch_array($result)) {
-    $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d'),
+    $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d H:i:s'),
                     $click['client_ip'] ? $click['client_ip'] : 'N/A',
-                    $click['referrer'] ? $click['referrer'] : 'N/A',
-                    $click['destination'] ? $click['destination']  : 'Frontpage',
+                    $click['referrer'] ? wordwrap($click['referrer'], 25, "\n", true) : 'N/A',
+                    $click['destination'] ? wordwrap($click['destination'], 25, "\n", true)  : 'Frontpage',
                     ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
                     );
 
@@ -1731,7 +1731,7 @@ function _uc_affiliate2_get_user_rid($user_roles) {
   $roles = user_roles(FALSE, 'act as affiliate');
   $roles = array_intersect_assoc($roles, $user_roles);
   $rids = array_keys($roles);
-  $rid = $rids[0];
+  $rid = end($rids);
 
   return $rid;
 }

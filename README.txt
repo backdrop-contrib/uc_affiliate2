@@ -33,6 +33,7 @@ You can enable it from the Affiliate Settings page in Ubercart admin.
 - The admin ( user uid: 1) can't be an affiliate
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
+- When the user is assigned to multiple roles, the last one with affiliate permissions is taken as the current one.
 
 Upgrading from 2.0-rc1 and 2.0-rc2
 **********************************
