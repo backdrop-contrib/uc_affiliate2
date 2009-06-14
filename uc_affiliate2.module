@@ -264,18 +264,18 @@ function uc_affiliate2_links() {
 
   $output = '';
 
-  $products = array('all' => 'Show All');
+  $products = array('all' => t('Show All'));
   $products += _uc_affiliate2_get_products();
 
   if (count($products) > 1) {
-    $output .= '<b> Export product feed </b>';
-    $output .= '<br />Choose the products which you want included in your feed. <br />';
-    $output .= 'All product links will have your affiliate id included. <br /><br /> ';
+    $output .= '<b>' . t('Export product feed') . '</b> <br />';
+    $output .= t('Choose the products which you want included in your feed.') . '<br />';
+    $output .= t('All product links will have your affiliate id included.') . '<br /><br /> ';
 
     $output .= drupal_get_form('_uc_affiliate2_product_form', $products);
   }
   else {
-    $output .= 'No products found.';
+    $output .= t('No products found.');
   }
 
   return $output;
@@ -284,7 +284,11 @@ function uc_affiliate2_links() {
 // This function exports the products in html
 function uc_affiliate2_links_export() {
   $ids = func_get_args();
-  $output = '<br /><img src="'. $GLOBALS['base_url'] .'/misc/watchdog-error.png'.'" /> is the placeholder image in case none is present. <br />';
+
+  $output = '<br />';
+  $output .= t('!image is the placeholder image in case none is present.',
+                  array('!image' => '<img src="'. $GLOBALS['base_url'] .'/misc/watchdog-error.png'.'" />'));
+  $output .= '<br />';
 
   if ($ids[0] == 'all') {
     $products = _uc_affiliate2_get_products('html');
@@ -429,7 +433,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   $output = '';
 
   if ($mode == 'csv') {
-    $output = "Product Name, Price, Description, Image Link, Link\n";
+    $output = t('Product Name') . ', ' . t('Price') . ', ' . t('Description') . ', ' . t('Image Link') . ', ' . t('Link') . "\n";
   }
 
   if (count($show) > 0) {// are we filtering the query?
@@ -919,7 +923,12 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
       if ($aff) {
         db_query('INSERT INTO {uc_affiliate2_users} (aid, uid) VALUES (%d, %d)', $aff, $user->uid);
 
-        watchdog('user', 'User %name referred by user id %affiliate', array('%name' => theme('username', $user), '%affiliate' => theme('placeholder', $aff)));
+        $message = t('User !name referred by user id !affiliate', array('!name' => theme('username', $user),
+                                                                        '!affiliate' => theme('placeholder', $aff)
+                                                                        )
+                     );
+
+        watchdog('user', $message);
       }
       break;
     case 'view':
@@ -961,8 +970,8 @@ function uc_affiliate2_user($op, &$edit, &$user, $category = NULL) {
  * Display dashboard for affiliate
  */
 function uc_affiliate2_dashboard($user) {
-  $commissions = array('today' => 0, '7days' => 0, '365days' => 0);
-  $clicks = array('today' => 0, '7days' => 0, '365days' => 0);
+  $commissions = array('today' => 0, 'week' => 0, 'year' => 0);
+  $clicks = array('today' => 0, 'week' => 0, 'year' => 0);
 
   // get today's commissions
   $dates_today = _uc_affiliate2_predefined_range(7);
@@ -974,27 +983,27 @@ function uc_affiliate2_dashboard($user) {
     $commissions['today'] += $count['cnt'];
   }
 
-  // get commissions from the last 7 days
+  /// get commissions from the last 7 days
   $dates_week = _uc_affiliate2_predefined_range(6);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created between ' . $dates_week['start'] . ' AND ' . $dates_week['end'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created BETWEEN ' . $dates_week['start'] . ' AND ' . $dates_week['end'];
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
-    $commissions['7days'] += $count['cnt'];
+    $commissions['week'] += $count['cnt'];
   }
 
   // get commissions from the last year
   $dates_year = _uc_affiliate2_predefined_range(5);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created between ' . $dates_year['start'] . ' AND ' . $dates_year['end'];
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created BETWEEN ' . $dates_year['start'] . ' AND ' . $dates_year['end'];
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
-    $commissions['365days'] += $count['cnt'];
+    $commissions['year'] += $count['cnt'];
   }
 
-  // get today's clicks
+   // get today's clicks
   $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY click_date";
   $result = db_query($sql);
 
@@ -1007,7 +1016,7 @@ function uc_affiliate2_dashboard($user) {
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
-    $clicks['7days'] += $count['clicks'];
+    $clicks['week'] += $count['clicks'];
   }
 
   // get commissions from the last year
@@ -1015,48 +1024,48 @@ function uc_affiliate2_dashboard($user) {
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
-    $clicks['365days'] += $count['clicks'];
+    $clicks['year'] += $count['clicks'];
   }
 
   drupal_set_title(t('Affiliate Center'));
 
   $output = '';
 
-  $output .= '<div id="affiliate-sales-header"><h2>Commission History</h2> <br />';
+  $output .= '<div id="affiliate-sales-header"><h2>' . t('Commission History') . '</h2> <br />';
 
-  $output .= 'Sales Today: '. $commissions['today']  .' <br />
-              Sales last 7 Days: '  . $commissions['7days'] .' <br />
-              Last 365 Days: '. $commissions['365days'] .' <br /><br />';
+  $output .=  t('Sales Today:') . " $commissions[today] <br />" .
+              t('Sales last 7 Days:') . " $commissions[week] <br />" .
+              t('Last 365 Days:') . " $commissions[year] <br /><br />";
 
   $commissions_url = join('/', array('user', $user->uid, 'affiliate', 'commissions'));
-  $output .= l('Click here for more reports.', $commissions_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= l(t('Click here for more reports.'), $commissions_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
-  $output .= '<br /><div id="affiliate-sales-click-count"><h2>Unique Click Count</h2> <br />';
+  $output .= '<br /><div id="affiliate-sales-click-count"><h2>' . t('Unique Click Count') . '</h2> <br />';
 
-  $output .= "Today's Clicks: ". $clicks['today'] ."<br />
-              Last 7 Days: ". $clicks['7days'] ."<br />
-              Last 365 Days: ". $clicks['365days'] ."<br /><br />";
+  $output .= t("Today's Clicks:") . " $clicks[today] <br />" .
+             t("Last 7 Days: ") . " $clicks[week] <br />" .
+             t("Last 365 Days: ") . " $clicks[year] <br /><br />";
 
   $clicks_url = join('/', array('user', $user->uid, 'affiliate', 'clicks'));
-  $output .= l('Click here for customized click reporting.', $clicks_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= l(t('Click here for customized click reporting.'), $clicks_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
   $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2>';
-  $output .= 'You can append a destination page to the end of the affiliate links to redirect to a specific page,
+  $output .= t('You can append a destination page to the end of the affiliate links to redirect to a specific page,
               as well as track clicks to it, i.e.
-              example.com/affiliate/' . $user->name . '/node/1 <br /> <br />';
+              example.com/affiliate/!username/node/1', array('!username' => $user->name)) . '<br /> <br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
   $text_link = l($text_link, 'affiliate/'. $user->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
-  $output .= '<b>Text Link:</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
+  $output .= '<b>' . t('Text Link:') . '</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
   $output .= _uc_affiliate2_display_banners();
 
   $links_url = join('/', array('user', $user->uid, 'affiliate', 'links'));
-  $output .= '<br />' . l('Click here for product links.', $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= '<br />' . l(t('Click here for product links.'), $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
 
@@ -1154,10 +1163,10 @@ function uc_affiliate2_clicks($user) {
 function uc_affiliate2_click_details($user) {
   drupal_set_title(t('Unique Clicks - Details'));
 
-  $cookie_statuses = array('Not sent', 'Sent (Unconfirmed)', 'Sent (Confirmed)');
+  $cookie_statuses = array(t('Not sent'), t('Sent (Unconfirmed)'), t('Sent (Confirmed)'));
 
-  $output = 'Viewing clicks for: ' . format_date(arg(5), 'custom', 'Y/m/d') . '<br /> <br />';
-  $output .= 'Cookie Status can be: Not sent, Sent (Unconfirmed), Sent (Confirmed). <br />';
+  $output = t('Viewing clicks for:') . ' ' . format_date(arg(5), 'custom', 'Y/m/d') . '<br /> <br />';
+  $output .= t('Cookie Status can be: Not sent, Sent (Unconfirmed), Sent (Confirmed).') . '<br />';
 
   // setup the table
   $header = array(
@@ -1421,12 +1430,22 @@ function uc_affiliate2_order($op, $order, $status) {
   // take commissions ( moving from a "give commissions" status to a one that doesn't have that privillege)
   if($op == 'update' && $statuses[$order->order_status] && $status && !$statuses[$status]) {
     $result = db_query("SELECT aid FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
-    $affiliate = db_fetch_array($result);
+    $affiliates = array();
+
+    while($affiliate = db_fetch_array($result)) {
+      $affiliates[] = $affiliate['aid'];
+    }
+
+    if(count($affiliates) < 1) { // not an affiliate order
+      return;
+    }
 
     db_query("DELETE FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
 
-    $note = t('Removed commission recorded for affiliate uid: @affiliate', array('@affiliate' => $affiliate['aid']));
-    uc_order_comment_save($order->order_id, $user->uid, $note);
+    foreach($affiliates as $affiliate) {
+      $note = t('Removed commission recorded for affiliate uid: @affiliate', array('@affiliate' => $affiliate));
+      uc_order_comment_save($order->order_id, $user->uid, $note);
+    }
   }
 }
 
