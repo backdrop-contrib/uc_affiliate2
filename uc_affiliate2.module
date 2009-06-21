@@ -663,7 +663,7 @@ function uc_affiliate2_admin_manage() {
   );
 
   // define the query
-  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
+  $sql = "SELECT u.*
             FROM {users} u
               INNER JOIN {users_roles} ur ON u.uid = ur.uid
                   WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%')
@@ -991,8 +991,7 @@ function uc_affiliate2_dashboard($user) {
   }
 
    // get today's clicks
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'];
-
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY aid";
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
@@ -1000,7 +999,7 @@ function uc_affiliate2_dashboard($user) {
   }
 
   // get commissions from the last 7 days
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'];
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'] . " GROUP BY aid";
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
@@ -1008,7 +1007,7 @@ function uc_affiliate2_dashboard($user) {
   }
 
   // get commissions from the last year
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'];
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'] . " GROUP BY aid";
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
@@ -1114,25 +1113,47 @@ function uc_affiliate2_commissions($user) {
 function uc_affiliate2_clicks($user) {
   drupal_set_title(t('Unique Click count'));
 
-  // setup the table
+  // Create sql to display level of affiliate specified
+  $dates = _uc_affiliate2_predefined_range(arg(4));
+  $sql = "SELECT time FROM {uc_affiliate2_clicks} WHERE aid = ". $user->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'];
+  $result = db_query($sql);
+
+  $clicks = array();
+  while ($click_day = db_fetch_array($result)) {
+    $date = date('Y/m/d', $click_day['time']);
+    $date_unix = strtotime($date);
+
+    $clicks[$date_unix] += 1;
+  }
+
+  /*
+   * Since we are building the array by hand instad of grouping with date functions
+   * (because mysql/postgresql have different ways to do this, and we need to support both),
+   * we need to simulate the sorting
+   */
   $header = array(
-    array('data' => t('Date'), 'field' => "click_date", 'sort' => 'desc'),
+    array('data' => t('Date'), 'field' => "date"),
     array('data' => t('Unique Clicks'), 'field' => "clicks"),
   );
 
-  // Create sql to display level of affiliate specified
-  $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = ". $user->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'] ." GROUP BY click_date";
+  $sort = str_replace('ORDER BY', '', tablesort_sql($header));
+  $sort_params = explode(' ', trim($sort));
 
-  $sql .= tablesort_sql($header);
-  $result = db_query($sql);
+  if ($sort_params[0] == 'date' && $sort_params[1] == 'ASC') {
+    ksort($clicks);
+  } else if ($sort_params[0] == 'date' && $sort_params[1] == 'DESC') {
+    krsort($clicks);
+  } else if ($sort_params[0] == 'clicks' && $sort_params[1] == 'ASC') {
+    asort($clicks);
+  } else if ($sort_params[0] == 'clicks' && $sort_params[1] == 'DESC') {
+    arsort($clicks);
+  }
 
   $total_clicks = 0;
-  while ($click_day = db_fetch_array($result)) {
-    $link = l(format_date($click_day['click_date'], 'custom', 'Y/m/d'), 'user/' . $user->uid . '/affiliate/clicks/details/' . $click_day['click_date']);
-
-    $rows[] = array($link, $click_day['clicks']);
-    $total_clicks += $click_day['clicks'];
+  foreach($clicks as $click_date => $clicks_count) {
+    $link = l(format_date($click_date, 'custom', 'Y/m/d'), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date);
+    $rows[] = array($link, $clicks_count);
+    $total_clicks += $clicks_count;
   }
   $rows[] = array(t('Total:'), $total_clicks);
 
