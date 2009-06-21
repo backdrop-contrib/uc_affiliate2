@@ -724,13 +724,14 @@ function uc_affiliate2_admin_users($uid) {
 
   foreach ($total_sales as $date => $sales) {
     $amount = ($amounts[$date]) ? $amounts[$date] : 0;
-    $amount = uc_currency_format($amount);
 
     // format paid field as link or form
     if ($month_timestamp && is_numeric($month_timestamp) && $date == $month_timestamp) {
+      $amount = uc_currency_format($amount, false);
       $paid = drupal_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, $date);
     }
     else {
+      $amount = uc_currency_format($amount);
       $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $date)));
     }
 
@@ -776,15 +777,8 @@ function uc_affiliate2_admin_users_paid_form($form_state, $amount, $uid, $date) 
 }
 
 function uc_affiliate2_admin_users_paid_form_validate($form, &$form_state) {
-  $sign = variable_get('uc_currency_sign', '$');
   $amount = $form_state['values']['amount'];
 
-  if (!is_numeric($amount)) {
-    $amount = trim($amount);
-    if (substr($amount, 0, 1) == $sign) {
-      $amount = substr($amount, 1);
-    }
-  }
   if (!is_numeric($amount) || $amount < 0) {
     form_set_error('amount', t('Please specify an amount paid to this affiliate.'));
   }
@@ -795,13 +789,6 @@ function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
   $amount = $form_state['values']['amount'];
   $uid = $form_state['values']['uid'];
   $date = $form_state['values']['date'];
-
-  if (!is_numeric($amount)) {
-    $amount = trim($amount);
-    if (substr($amount, 0, 1)==$sign) {
-      $amount = substr($amount, 1);
-    }
-  }
 
   $rec = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
   if ($rec===FALSE) {

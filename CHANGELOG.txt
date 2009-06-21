@@ -1,5 +1,11 @@
 CHANGELOG for uc_affiliate2 module
 
+Version 2.1
+***********
+-- translation updates (some strings weren't translatable)
+-- updated the commission removal routines, we don't try to remove commissions that aren't there anymore :)
+-- simplified the admin_users form code ( for amounts paid to the affiliate). Thanks to freakalis for the tip
+
 Version 2.0
 ***********
 2009/05/06
