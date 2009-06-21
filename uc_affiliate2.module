@@ -255,7 +255,7 @@ function uc_affiliate2_product_commission_submit($form, &$form_state) {
     db_query('UPDATE {uc_affiliate2_product_commission} SET commission_structure= "%s" WHERE nid = %d', serialize($commission_structure), $nid);
   }
   else {
-    db_query('INSERT {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, "%s")', $nid, serialize($commission_structure));
+    db_query("INSERT INTO {uc_affiliate2_product_commission} (nid, commission_structure) VALUES (%d, '%s')", $nid, serialize($commission_structure));
   }
 }
 
@@ -991,7 +991,8 @@ function uc_affiliate2_dashboard($user) {
   }
 
    // get today's clicks
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY click_date";
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'];
+
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
@@ -999,7 +1000,7 @@ function uc_affiliate2_dashboard($user) {
   }
 
   // get commissions from the last 7 days
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'] . " GROUP BY click_date";
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'];
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
@@ -1007,7 +1008,7 @@ function uc_affiliate2_dashboard($user) {
   }
 
   // get commissions from the last year
-  $sql = "SELECT unix_timestamp(from_unixtime(time, '%%Y-%%m-%%d')) as click_date, count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'] . " GROUP BY click_date";
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'];
   $result = db_query($sql);
 
   while ($count = db_fetch_array($result)) {
