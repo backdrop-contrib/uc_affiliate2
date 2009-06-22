@@ -663,11 +663,11 @@ function uc_affiliate2_admin_manage() {
   );
 
   // define the query
-  $sql = "SELECT u.*
+  $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
             FROM {users} u
               INNER JOIN {users_roles} ur ON u.uid = ur.uid
                   WHERE ur.rid IN (SELECT r.rid from {role} r INNER JOIN {permission} p ON r.rid = p.rid WHERE p.perm LIKE '%act as affiliate%')
-                    GROUP BY u.uid";
+                    GROUP BY u.uid, u.name, u.status, u.created, u.access";
 
   $sql .= tablesort_sql($header);
   $result = db_query($sql);
