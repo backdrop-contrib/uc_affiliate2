@@ -792,7 +792,7 @@ function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
 
   $rec = db_result(db_query('SELECT amount FROM {uc_affiliate2_paid} WHERE aid=%d AND date=%d', $uid, $date));
   if ($rec===FALSE) {
-    db_query('INSERT {uc_affiliate2_paid} (aid, date, amount) VALUES (%d, %d, %f)', $uid, $date, $amount);
+    db_query('INSERT INTO {uc_affiliate2_paid} (aid, date, amount) VALUES (%d, %d, %f)', $uid, $date, $amount);
   }
   else {
     db_query('UPDATE {uc_affiliate2_paid} SET amount=%f WHERE aid=%d AND date=%d', $amount, $uid, $date);
@@ -1120,6 +1120,8 @@ function uc_affiliate2_clicks($user) {
 
   $clicks = array();
   while ($click_day = db_fetch_array($result)) {
+    $click_day['time'] = (int)format_date($click_day['time'], custom, 'U');
+
     $date = date('Y/m/d', $click_day['time']);
     $date_unix = strtotime($date);
 
@@ -1151,7 +1153,8 @@ function uc_affiliate2_clicks($user) {
 
   $total_clicks = 0;
   foreach($clicks as $click_date => $clicks_count) {
-    $link = l(format_date($click_date, 'custom', 'Y/m/d'), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date);
+    $click_date_end = $click_date + 86399;
+    $link = l(date('Y/m/d', $click_date), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
     $rows[] = array($link, $clicks_count);
     $total_clicks += $clicks_count;
   }
@@ -1174,7 +1177,7 @@ function uc_affiliate2_click_details($user) {
 
   $cookie_statuses = array(t('Not sent'), t('Sent (Unconfirmed)'), t('Sent (Confirmed)'));
 
-  $output = t('Viewing clicks for:') . ' ' . format_date(arg(5), 'custom', 'Y/m/d') . '<br /> <br />';
+  $output = t('Viewing clicks for: ') . date('Y/m/d', arg(5)) . '<br /> <br />';
   $output .= t('Cookie Status can be: Not sent, Sent (Unconfirmed), Sent (Confirmed).') . '<br />';
 
   // setup the table
@@ -1187,10 +1190,7 @@ function uc_affiliate2_click_details($user) {
   );
 
   // Create sql to display level of affiliate specified
-  $start = arg(5);
-
-  $dates['start'] = mktime(00, 00, 00, date("m", $start) , date("d", $start), date("Y", $start));
-  $dates['end'] = mktime(23, 59, 59, date("m", $start) , date("d", $start), date("Y", $start));
+  $dates = _uc_affiliate2_predefined_range(0);
 
   $sql = "SELECT * FROM {uc_affiliate2_clicks} WHERE aid = ". $user->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'];
 
@@ -1429,7 +1429,7 @@ function uc_affiliate2_order($op, $order, $status) {
           //TODO should this be rounded to nearest penny???
           $comm = $data['total'] * $comm_pct;
           $note = t('Level @level commission of @percent% recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
-          db_query("INSERT {uc_affiliate2_commission} (order_id, aid, commission, commission_notes) VALUES (%d, %d, %f, '%s')", $order->order_id, $aff, $comm, $note);
+          db_query("INSERT INTO {uc_affiliate2_commission} (order_id, aid, commission, commission_notes) VALUES (%d, %d, %f, '%s')", $order->order_id, $aff, $comm, $note);
           uc_order_comment_save($order->order_id, $user->uid, $note);
         }
       }
@@ -1468,7 +1468,7 @@ function uc_affiliate2_order($op, $order, $status) {
  */
 function uc_affiliate2_time_selection_form(&$form_state, $method='') {
   // Date Setup
-  $dates = _uc_affiliate2_predefined_range(arg(4));
+  $dates = _uc_affiliate2_predefined_range(arg(4), false);
   $dt_first = $dates['start'];
   $dt_last = $dates['end'];
 
@@ -1544,12 +1544,40 @@ function uc_affiliate2_time_selection_form_submit($form, &$form_state) {
   drupal_goto(arg(0) .'/'. arg(1) .'/'. arg(2) .'/'. arg(3) .'/'. $form_state['values']['period'] .'/'. $start_date .'/'. $end_date);
 }
 
-function _uc_affiliate2_predefined_range($type=0) {
+/**
+ * Makes the ranges used for selecting entries
+ * (for example: 12th May 00:00:00, 12th May 11:59:59)
+ * We substract the timezone, doing exactly the oposite of what format_date does.
+ * (so that the we don't get timestamps belonging to a different day, after inserting them
+ * into format_date)
+ */
+function _uc_affiliate2_predefined_range($type=0, $substract_timezone = true) {
+  global $user;
+
+  if (variable_get('configurable_timezones', 1) && $user->uid && strlen($user->timezone)) {
+    $timezone = $user->timezone;
+  }
+  else {
+    $timezone = variable_get('date_default_timezone', 0);
+  }
+
+
   $now = time();
+  $now = (int)format_date($now, custom, 'U');
+
   $dates = array();
 
   if (arg(5)!= 0 && arg(6)!= 0) {
-    $dates = array('start' => arg(5), 'end' => arg(6));
+    $start = arg(5);
+    $end = arg(6);
+
+    if ($substract_timezone) {
+      $start -= $timezone;
+      $end -= $timezone;
+    }
+
+    $dates = array('start' => $start,
+                   'end' => $end);
 
     return $dates;
   }
@@ -1595,8 +1623,14 @@ function _uc_affiliate2_predefined_range($type=0) {
       break;
   }
 
+  if ($substract_timezone) {
+    $dates['start'] -= $timezone;
+    $dates['end'] -= $timezone;
+  }
+
   return $dates;
 }
+
 
 /**
  * Determine an affiliate's upline
