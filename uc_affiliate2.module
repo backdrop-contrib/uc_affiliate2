@@ -409,7 +409,7 @@ function _uc_affiliate2_display_banners() {
 
   foreach ($banners as $banner) {
     $banner = '<'. $banner;
-    $banner_link = l($banner, 'affiliate/'. $user->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+    $banner_link = l($banner, 'affiliate/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
     $line = array();
     $line[] = $banner;
@@ -464,7 +464,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     }
 
     $product->path = (!$product->path) ? 'node/'. $product->nid : $product->path;
-    $link = $GLOBALS['base_url'] .'/affiliate/'. $user->name .'/'. $product->path;
+    $link = $GLOBALS['base_url'] .'/affiliate/'. $user->uid .'/'. $product->path;
 
     if (empty($product->field_image_cache[0]['filepath'])) {
       $image = 'N/A';
@@ -1046,7 +1046,7 @@ function uc_affiliate2_dashboard($user) {
               example.com/affiliate/!username/node/1', array('!username' => $user->name)) . '<br /> <br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, 'affiliate/'. $user->name, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $text_link = l($text_link, 'affiliate/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
   $output .= '<b>' . t('Text Link:') . '</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
   $output .= _uc_affiliate2_display_banners();
@@ -1676,7 +1676,7 @@ function _uc_affiliate2_get_domain() {
 /**
  * Records affiliate ID in the user session and counts the click.
  */
-function uc_affiliate2_click($username = '') {
+function uc_affiliate2_click($username = 0) {
   // If the subdomain handling is enabled, see if the URL references an affiliate in the subdomain
   if (variable_get('affiliate_enable_subdomain_handling', 0)) {
     $subdomain = _uc_affiliate2_get_subdomain();
@@ -1702,7 +1702,15 @@ function uc_affiliate2_click($username = '') {
       $found_affiliate = TRUE;
     }
   }
-  else if ($username) { // regular (affiliate/$affiliate)
+  else if (is_numeric($username) && $username > 0) { // regular (affiliate/$uid)
+    $found_affiliate = FALSE;
+    $account = user_load(array('uid' => $username));
+
+    if (_uc_affiliate2_clicked($account, $goto)) { // valid, redirect
+      $found_affiliate = TRUE;
+    }
+  }
+  else if (is_string($username)) { // old url's (affiliate/username, 
     $found_affiliate = FALSE;
     $account = user_load(array('name' => $username));
 
