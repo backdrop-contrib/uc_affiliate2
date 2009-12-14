@@ -10,6 +10,7 @@ Version 2.1
 -- the affiliate url now uses user id's instead of names. Old urls still supported, of course. Thanks to lonehorseend.
 -- use prices with VAT / taxes. Thanks to kenwen/longwave
 -- add support for customizable affiliate URL schemes (by jjeff)
+-- fix for "affiliate code generation user issue" (allow generating links for users other than the current one)
 
 Version 2.0
 ***********
