@@ -64,7 +64,12 @@ function uc_affiliate2_menu() {
     'access arguments' => $access,
     'type' => MENU_LOCAL_TASK
   );
-  $items['affiliate'] = array(
+  
+  // The path for affiliate links defaults to /affiliate/[uid]
+  // however, this can be overridden by adding the following line
+  // $conf['uc_affiliate2_path'] = 'my_affiliate_path'
+  // in the site's settings.php file
+  $items[variable_get('uc_affiliate2_path', 'affiliate')] = array(
     'page callback' => 'uc_affiliate2_click',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK
@@ -409,7 +414,7 @@ function _uc_affiliate2_display_banners() {
 
   foreach ($banners as $banner) {
     $banner = '<'. $banner;
-    $banner_link = l($banner, 'affiliate/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+    $banner_link = l($banner, variable_get('uc_affiliate2_path', 'affiliate') .'/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
     $line = array();
     $line[] = $banner;
@@ -464,7 +469,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     }
 
     $product->path = (!$product->path) ? 'node/'. $product->nid : $product->path;
-    $link = $GLOBALS['base_url'] .'/affiliate/'. $user->uid .'/'. $product->path;
+    $link = $GLOBALS['base_url'] .'/'. variable_get('uc_affiliate2_path', 'affiliate') .'/'. $user->uid .'/'. $product->path;
 
     if (empty($product->field_image_cache[0]['filepath'])) {
       $image = 'N/A';
@@ -1053,10 +1058,10 @@ function uc_affiliate2_dashboard($user) {
   $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2>';
   $output .= t('You can append a destination page to the end of the affiliate links to redirect to a specific page,
               as well as track clicks to it, i.e.
-              example.com/affiliate/!username/node/1', array('!username' => $user->name)) . '<br /> <br />';
+              example.com/!path/!uid/node/1', array('!uid' => $user->uid, '!path' => variable_get('uc_affiliate2_path', 'affiliate'))) . '<br /> <br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, 'affiliate/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $text_link = l($text_link, variable_get('uc_affiliate2_path', 'affiliate'). '/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
   $output .= '<b>' . t('Text Link:') . '</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
   $output .= _uc_affiliate2_display_banners();
