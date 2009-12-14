@@ -13,6 +13,7 @@ Version 2.1
 -- fix for "affiliate code generation user issue" (allow generating links for users other than the current one)
 -- fixed error in Downline when ordering by Level (disabled, not possible for now)
 -- fixed error in admin/store/manage (remove option to sort by clicks, users, orders, not possible for now)
+-- support for disabling commission for certain payment methods (which means we work with uc_free_order in the mix).
 
 Version 2.0
 ***********

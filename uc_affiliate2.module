@@ -581,6 +581,18 @@ function uc_affiliate2_admin_settings() {
     '#description' => t("If enabled, this module will record affiliate actions if customers visit the site through an affiliate subdomain, like john.thissite.com. Enable this only if drupal is not installed on a subdomain."),
     '#default_value' => variable_get('affiliate_enable_subdomain_handling', 0),
   );
+  
+  foreach (_payment_method_list() as $method) {
+    $payment_methods[$method['id']] = $method['name'];
+  }
+  
+  $form['affiliate_no_commission_payment_methods'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Disable commission for these Payment methods'),
+    '#default_value' => variable_get('affiliate_no_commission_payment_methods', array()),
+    '#description' => t('You can disable commission for certain Payment methods'),
+    '#options' => $payment_methods,
+  );
 
   $roles = user_roles(FALSE, 'act as affiliate');
 
@@ -1422,6 +1434,13 @@ function uc_affiliate2_order($op, $order, $status) {
     // order ready for commission assignment
     // find all affiliates included in order
     $affcom = array();
+    
+    $no_commmission_methods = array_flip(variable_get('affiliate_no_commission_payment_methods',array()));
+    
+    // we shouldn't give commissions on these payment methods.
+    if(array_key_exists($order->payment_method, $no_commmission_methods)) {
+      return;  
+    }
     
     $context = array(
       'revision' => 'altered',
