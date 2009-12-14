@@ -8,6 +8,7 @@ Version 2.1
 -- query fixes. Reimplemented the uc_affiliate2_clicks function. We are now compatible with PostgreSQL. Thanks to Chris (cjscullyca) for his fixes
 -- fixes to the code we use to generate timestamps and get records from the db. Should be problem free now.
 -- the affiliate url now uses user id's instead of names. Old urls still supported, of course. Thanks to lonehorseend.
+-- use prices with VAT / taxes. Thanks to kenwen/longwave
 
 Version 2.0
 ***********

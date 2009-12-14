@@ -475,11 +475,21 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
     $title = check_plain($product->title);
     $description = str_replace('"', "'", strip_tags($product->body));
+    
+    $context = array(
+      'revision' => 'themed',
+      'type' => 'product',
+      'class' => array('product', 'sell'),
+      'field' => 'sell_price',
+      'subject' => array('node' => $product),
+    );
+    
+    $price = uc_price($product->sell_price, $context, array('label' => FALSE));
 
     switch ($mode) {
       case 'csv':
         $output .= $title .',';
-        $output .= $product->sell_price .',';
+        $output .= $price .',';
         $output .= '"'. $description .'",';
 
         $output .= $image .',';
@@ -493,7 +503,7 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
       case "html":
         $image = ($image == 'N/A') ? $GLOBALS['base_url'] .'/misc/watchdog-error.png' : $image;
-        $products[$title] = str_replace(array('[LINK]', '[TITLE]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $title, $image, $description, $product->sell_price), $template);
+        $products[$title] = str_replace(array('[LINK]', '[TITLE]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $title, $image, $description, $price), $template);
       break;
     }
   }
@@ -1406,12 +1416,26 @@ function uc_affiliate2_order($op, $order, $status) {
     // order ready for commission assignment
     // find all affiliates included in order
     $affcom = array();
+    
+    $context = array(
+      'revision' => 'altered',
+      'type' => 'order_product',
+      'subject' => array('order' => $order),
+    );
+    
     // sum the prices of products from each affiliate store
     foreach ($order->products as $product) {
       //TODO enable setting for excluding certain products from commissionable total
       if (isset($product->data['affiliate'])) {
+        $price_info = array(
+          'price' => $product->price,
+          'qty' => ($product->qty) ? $product->qty : 1,
+        );
+        $context['subject']['product'] = $product;
+        $context['subject']['node'] = node_load($product->nid);
+        $price = uc_price($price_info, $context);
+
         $aff = $product->data['affiliate'];
-        $price = $product->price * $product->qty;
         $affcom[$aff]['total'] = isset($affcom[$aff]['total']) ? $affcom[$aff]['total'] + $price : $price;
         $affcom[$aff]['nid'] = $product->nid;
       }
