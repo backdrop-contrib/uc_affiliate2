@@ -991,8 +991,8 @@ function uc_affiliate2_dashboard($user) {
   // get today's commissions
   $dates_today = _uc_affiliate2_predefined_range(7);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created between ' . $dates_today['start'] . ' AND ' . $dates_today['end'];
-  $result = db_query($sql);
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = %d AND uco.created BETWEEN %d AND %d';
+  $result = db_query($sql, $user->uid, $dates_today['start'], $dates_today['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['today'] += $count['cnt'];
@@ -1001,8 +1001,11 @@ function uc_affiliate2_dashboard($user) {
   /// get commissions from the last 7 days
   $dates_week = _uc_affiliate2_predefined_range(6);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created BETWEEN ' . $dates_week['start'] . ' AND ' . $dates_week['end'];
-  $result = db_query($sql);
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt
+            FROM {uc_affiliate2_commission} ac
+              INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
+                WHERE aid = %d AND uco.created BETWEEN %d AND %d';
+  $result = db_query($sql, $user->uid, $dates_week['start'], $dates_week['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['week'] += $count['cnt'];
@@ -1011,32 +1014,41 @@ function uc_affiliate2_dashboard($user) {
   // get commissions from the last year
   $dates_year = _uc_affiliate2_predefined_range(5);
 
-  $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = ' . $user->uid . ' AND uco.created BETWEEN ' . $dates_year['start'] . ' AND ' . $dates_year['end'];
-  $result = db_query($sql);
+  $sql = 'SELECT COUNT(ac.commission_id) as cnt
+            FROM {uc_affiliate2_commission} ac
+              INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
+                WHERE aid = %d AND uco.created BETWEEN %d AND %d';
+  $result = db_query($sql, $user->uid, $dates_year['start'], $dates_year['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['year'] += $count['cnt'];
   }
 
    // get today's clicks
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_today['start'] . " AND " . $dates_today['end'] . " GROUP BY aid";
-  $result = db_query($sql);
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
+            WHERE aid = %d AND time BETWEEN %d AND %d
+              GROUP BY aid";
+  $result = db_query($sql, $user->uid, $dates_today['start'], $dates_today['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['today'] += $count['clicks'];
   }
 
   // get commissions from the last 7 days
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_week['start'] . " AND " . $dates_week['end'] . " GROUP BY aid";
-  $result = db_query($sql);
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
+            WHERE aid = %d AND time BETWEEN %d AND %d
+              GROUP BY aid";
+  $result = db_query($sql, $user->uid, $dates_week['start'], $dates_week['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['week'] += $count['clicks'];
   }
 
   // get commissions from the last year
-  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks} WHERE aid = " . $user->uid . " AND time between " . $dates_year['start'] . " AND " . $dates_year['end'] . " GROUP BY aid";
-  $result = db_query($sql);
+  $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
+            WHERE aid = %d AND time BETWEEN %d AND %d
+              GROUP BY aid";
+  $result = db_query($sql, $user->uid, $dates_year['start'], $dates_year['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['year'] += $count['clicks'];
@@ -1108,9 +1120,9 @@ function uc_affiliate2_commissions($user) {
   $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission
             FROM {uc_affiliate2_commission} ac
               INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
-                WHERE aid = '. $user->uid .' AND uco.created between '. $dates['start'] .' AND '. $dates['end'];
+                WHERE aid = %d AND uco.created BETWEEN %d AND %d';
   $sql .= tablesort_sql($header);
-  $result = db_query($sql);
+  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
 
   $total_sales = 0;
   $total_commission = 0;
@@ -1143,8 +1155,8 @@ function uc_affiliate2_clicks($user) {
 
   // Create sql to display level of affiliate specified
   $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = "SELECT time FROM {uc_affiliate2_clicks} WHERE aid = ". $user->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'];
-  $result = db_query($sql);
+  $sql = "SELECT time FROM {uc_affiliate2_clicks} WHERE aid = %d AND time BETWEEN %d AND %d";
+  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
 
   $clicks = array();
   while ($click_day = db_fetch_array($result)) {
@@ -1220,10 +1232,10 @@ function uc_affiliate2_click_details($user) {
   // Create sql to display level of affiliate specified
   $dates = _uc_affiliate2_predefined_range(0);
 
-  $sql = "SELECT * FROM {uc_affiliate2_clicks} WHERE aid = ". $user->uid ." AND time between ". $dates['start'] ." AND ". $dates['end'];
+  $sql = "SELECT * FROM {uc_affiliate2_clicks} WHERE aid = %d AND time BETWEEN %d AND %d";
 
   $sql .= tablesort_sql($header);
-  $result = db_query($sql);
+  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
 
   $total_clicks = 0;
   while ($click = db_fetch_array($result)) {
@@ -1264,9 +1276,9 @@ function uc_affiliate2_orders($user) {
   // Create sql to affiliate's commissions
   $sql = 'SELECT uco.*, ao.order_id
             FROM {uc_affiliate2_orders} ao INNER JOIN {uc_orders} uco on ao.order_id = uco.order_id
-              WHERE ao.aid = '. $user->uid;
+              WHERE ao.aid = %d';
   $sql .= tablesort_sql($header);
-  $result = db_query($sql);
+  $result = db_query($sql, $user->uid);
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
@@ -1378,10 +1390,10 @@ function uc_affiliate2_upline($user) {
     $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, uc.user_count, ". $i ." AS level ";
     $sql .= "FROM {users} u INNER JOIN {uc_affiliate2_users} au ON au.aid = u.uid ";
     $sql .= "LEFT OUTER JOIN (SELECT au2.aid, COUNT(au2.uid) as user_count FROM {uc_affiliate2_users} au2 GROUP BY au2.aid) uc on uc.aid = u.uid ";
-    $sql .= "WHERE au.uid = ". $next_uid;
+    $sql .= "WHERE au.uid = %d";
 
     // create the data rows for our table
-    $result = db_query($sql);
+    $result = db_query($sql, $next_uid);
     $status = array(t('blocked'), t('active'));
     while ($affiliate = db_fetch_object($result)) {
       $next_uid = $affiliate->uid;

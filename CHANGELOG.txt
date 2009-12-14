@@ -14,6 +14,7 @@ Version 2.1
 -- fixed error in Downline when ordering by Level (disabled, not possible for now)
 -- fixed error in admin/store/manage (remove option to sort by clicks, users, orders, not possible for now)
 -- support for disabling commission for certain payment methods (which means we work with uc_free_order in the mix).
+-- query cleanup (thanks to jjeff).
 
 Version 2.0
 ***********
