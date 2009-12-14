@@ -11,6 +11,7 @@ Version 2.1
 -- use prices with VAT / taxes. Thanks to kenwen/longwave
 -- add support for customizable affiliate URL schemes (by jjeff)
 -- fix for "affiliate code generation user issue" (allow generating links for users other than the current one)
+-- fixed error in Downline when ordering by Level (disabled, not possible for now)
 
 Version 2.0
 ***********

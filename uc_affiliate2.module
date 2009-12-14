@@ -1297,7 +1297,7 @@ function uc_affiliate2_downline($user, $level = 1) {
     array('data' => t('Affiliate'), 'field' => "u$level.status"),
     array('data' => t('Member for'), 'field' => "u$level.created", 'sort' => 'desc'),
     array('data' => t('Last access'), 'field' => "u$level.access"),
-    array('data' => t('Level'), 'field' => "u$level.level"),
+    array('data' => t('Level')),
     array('data' => t('Customers'), 'field' => "uc.user_count"),
   );
 
