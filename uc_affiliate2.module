@@ -673,9 +673,9 @@ function uc_affiliate2_admin_manage() {
     array('data' => t('Status'), 'field' => 'u.status'),
     array('data' => t('Member for'), 'field' => 'u.created', 'sort' => 'desc'),
     array('data' => t('Last access'), 'field' => 'u.access'),
-    array('data' => t('Unique Clicks'), 'field' => 'clicks'),
-    array('data' => t('Users'), 'field' => 'users'),
-    array('data' => t('Orders'), 'field' => 'orders'),
+    array('data' => t('Unique Clicks')),
+    array('data' => t('Users')),
+    array('data' => t('Orders')),
   );
 
   // define the query
