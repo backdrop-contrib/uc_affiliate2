@@ -1,20 +1,21 @@
 CHANGELOG for uc_affiliate2 module
 
-Version 2.1
+Version 2.5rc1
 ***********
 -- translation updates (some strings weren't translatable)
+-- Reimplemented the uc_affiliate2_clicks function. 
 -- updated the commission removal routines, we don't try to remove commissions that aren't there anymore :)
 -- simplified the admin_users form code ( for amounts paid to the affiliate). Thanks to freakalis for the tip
--- query fixes. Reimplemented the uc_affiliate2_clicks function. We are now compatible with PostgreSQL. Thanks to Chris (cjscullyca) for his fixes
+-- we are now compatible with PostgreSQL. Thanks to Chris (cjscullyca) for his query fixes.
 -- fixes to the code we use to generate timestamps and get records from the db. Should be problem free now.
 -- the affiliate url now uses user id's instead of names. Old urls still supported, of course. Thanks to lonehorseend.
--- use prices with VAT / taxes. Thanks to kenwen/longwave
 -- add support for customizable affiliate URL schemes (by jjeff)
+-- use prices with VAT / taxes. Thanks to kenwen/longwave
+-- support for disabling commission for certain payment methods (which means we work with uc_free_order in the mix).
+-- added support for "ignoring" a product (exclude from generated links, calculated commission) by setting it's commission to 0.
 -- fix for "affiliate code generation user issue" (allow generating links for users other than the current one)
 -- fixed error in Downline when ordering by Level (disabled, not possible for now)
 -- fixed error in admin/store/manage (remove option to sort by clicks, users, orders, not possible for now)
--- support for disabling commission for certain payment methods (which means we work with uc_free_order in the mix).
--- query cleanup (thanks to jjeff).
 
 Version 2.0
 ***********

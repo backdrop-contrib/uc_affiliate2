@@ -5,7 +5,7 @@ http://www.ubercart.org/forum/support/1586/how_are_people_doing_affilate_stuff_u
 Then moved here:
 http://www.ubercart.org/contrib/2446
 
-Code by
+Initial authors
 ********
 joe turgeon (http://arithmetric.com)
 jhuckabee
@@ -34,6 +34,10 @@ You can enable it from the Affiliate Settings page in Ubercart admin.
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
 - When the user is assigned to multiple roles, the last one with affiliate permissions is taken as the current one.
+- The path for affiliate links defaults to /affiliate/[uid]
+  However, this can be overridden by adding the following line
+  $conf['uc_affiliate2_path'] = 'my_affiliate_path';
+  in the site's settings.php file
 
 Upgrading from 2.0-rc1 and 2.0-rc2
 **********************************
@@ -48,4 +52,5 @@ Sponsors
 Aaron Schiff (http://www.ecopaper.com/)
 Polish Your Image (http://polishyourimage.com)
 A Mountain Top, LLC (http://amountaintop.com)
+Health Curve, LLC (http://www.myhealthcurve.com) 
 You?

@@ -166,8 +166,8 @@ function uc_affiliate2_menu() {
   //add item to node-form to adjust commissions by product
   $items['node/%node/edit/commissions'] = array(
     'title' => 'Affiliate Commissions',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('uc_affiliate2_product_commission', 1),
+    'page callback' => 'uc_affiliate2_product_commission',
+    'page arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_node_access',
     'access arguments' => array(1),
@@ -222,39 +222,50 @@ function uc_affiliate2_init() {
 }
 
 // Form to associate attributes with products or classes.
-function uc_affiliate2_product_commission($form_state, $node) {
+function uc_affiliate2_product_commission($node) {
+  $output = "'Product Commission Structure' is only used when the product is alone in the cart. <br />
+            If set to 0, the product won't be present in the generated links, and no commissions will be given for it (excluded from the total). <br />";
+
   // Get commission structure for this product
+  $commission_structure = 0;
   $result = db_query("SELECT commission_structure FROM {uc_affiliate2_product_commission} WHERE nid = %d", $node->nid);
+  
   if ($product_commission = db_fetch_object($result)) {
     $commission_structure = $product_commission->commission_structure;
   }
-  else {
-    $commission_structure = 0;
-  }
 
-  $form['affiliate_commission_structure_product'] = array(
+  $output .= drupal_get_form('uc_affiliate2_product_commission_form', $commission_structure, $node->nid);
+  
+  return $output;
+}
+
+function uc_affiliate2_product_commission_form($form_state, $commission_structure, $nid) {
+  $form['commission_structure'] = array(
     '#type' => 'textfield',
     '#title' => t('Product Commission Structure'),
-    '#description' => t('Sets the commission structure for this product.  This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy.  Example: 5,4,2,2,1'),
+    '#description' => t('Sets the commission structure for this product.
+                        This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding
+                        to the next level in the hierarchy.  Example: 5,4,2,2,1'),
     '#default_value' => unserialize($commission_structure),
     '#size' => 10
   );
 
   $form['nid'] = array(
     '#type' => 'value',
-    '#value' => $node->nid,
+    '#value' => $nid,
   );
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
   );
+  
   return $form;
 }
 
-function uc_affiliate2_product_commission_submit($form, &$form_state) {
+function uc_affiliate2_product_commission_form_submit($form, &$form_state) {
   $nid = $form_state['values']['nid'];
-  $commission_structure = $form_state['values']['affiliate_commission_structure_product'];
+  $commission_structure = $form_state['values']['commission_structure'];
 
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
   if ($result && $result->commission_structure) {
@@ -446,10 +457,14 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
     $placeholders = str_repeat('%d, ', count($show));
     $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
 
-    $where = ' and node.nid IN ('. $placeholders .')';
+    $where = ' AND node.nid IN ('. $placeholders .')';
   }
 
-  $result = db_query("select node.nid from {uc_products} uc_products inner join {node} node on uc_products.nid = node.nid where node.status = 1 $where", $show);
+  $result = db_query("SELECT node.nid FROM {uc_products} uc_products
+                        INNER JOIN {node} node ON uc_products.nid = node.nid
+                          WHERE node.status = 1
+                            AND node.nid NOT IN (SELECT nid FROM {uc_affiliate2_product_commission} WHERE commission_structure = 0)
+                              $where", $show);
 
   if (!$result && !$where) {
     return;
@@ -1461,9 +1476,17 @@ function uc_affiliate2_order($op, $order, $status) {
     );
     
     // sum the prices of products from each affiliate store
+    $nids = array();
     foreach ($order->products as $product) {
-      //TODO enable setting for excluding certain products from commissionable total
       if (isset($product->data['affiliate'])) {
+        $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $product->nid));
+        $product_commission_structure = unserialize($result->commission_structure);
+        
+        // If the commission is specifically "0", then we ignore this product.
+        if ($product_commission_structure === 0) {
+          continue;
+        }
+        
         $price_info = array(
           'price' => $product->price,
           'qty' => ($product->qty) ? $product->qty : 1,
@@ -1477,6 +1500,9 @@ function uc_affiliate2_order($op, $order, $status) {
         $affcom[$aff]['nid'] = $product->nid;
       }
     }
+    
+    // node ids of each product. If there is only one product, we can use per product commissions
+    $nids = array_unique($nids);
 
     // write commission records
     foreach ($affcom as $affid => $data) {
@@ -1484,9 +1510,9 @@ function uc_affiliate2_order($op, $order, $status) {
 
       for ($i=0; $i<count($affs); $i++) {
         $aff = $affs[$i];
-        $level = $i+1;
-        $comm_pct = _uc_affiliate2_get_commission_percentage($level, $data['nid']);
-        if ($comm_pct>0) {
+        $level = $i + 1;
+        $comm_pct = _uc_affiliate2_get_commission_percentage($level, $data['nid'], $nids);
+        if ($comm_pct > 0) {
           //TODO should this be rounded to nearest penny???
           $comm = $data['total'] * $comm_pct;
           $note = t('Level @level commission of @percent% recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
@@ -1877,7 +1903,7 @@ function _uc_affiliate2_get_user($uid) {
 /**
  * Get an affiliates commission percentage for the given level
  */
-function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
+function _uc_affiliate2_get_commission_percentage($level = 1, $nid = 0, $nids) {
   global $user;
 
   $account = user_load(array('uid' => $_SESSION['affiliate']));
@@ -1891,7 +1917,9 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid=0) {
   //check if this product has commission set for it
   $result = db_fetch_object(db_query("SELECT uapc.commission_structure FROM {uc_affiliate2_product_commission} AS uapc WHERE uapc.nid = %d", $nid));
   $product_commission_structure = unserialize($result->commission_structure);
-  if ($product_commission_structure) {
+  
+  // if the commission is defined, and this product is alone in the cart
+  if ($product_commission_structure && (count($nids) == 1)) {
     $default_structure = $product_commission_structure;
   }
   else {
