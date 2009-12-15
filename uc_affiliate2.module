@@ -1919,7 +1919,7 @@ function _uc_affiliate2_get_commission_percentage($level = 1, $nid = 0, $nids) {
   $product_commission_structure = unserialize($result->commission_structure);
   
   // if the commission is defined, and this product is alone in the cart
-  if ($product_commission_structure && (count($nids) == 1)) {
+  if ($product_commission_structure && (count($nids) === 1)) {
     $default_structure = $product_commission_structure;
   }
   else {
