@@ -1254,10 +1254,22 @@ function uc_affiliate2_click_details($user) {
 
   $total_clicks = 0;
   while ($click = db_fetch_array($result)) {
+    if ($click['referrer']) {
+      $click['referrer'] = l(t('Referrer'), $click['referrer']); // make it a link
+    } else {
+      $click['referrer'] = 'N/A';
+    }
+    
+    if ($click['destination']) {
+      $click['destination'] = l(t('Destination'), $click['destination']); // make it a link
+    } else {
+      $click['destination'] = 'Frontpage';
+    }
+    
     $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d H:i:s'),
                     $click['client_ip'] ? $click['client_ip'] : 'N/A',
-                    $click['referrer'] ? wordwrap($click['referrer'], 25, "\n", true) : 'N/A',
-                    $click['destination'] ? wordwrap($click['destination'], 25, "\n", true)  : 'Frontpage',
+                    $click['referrer'],
+                    $click['destination'],
                     ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
                     );
 
