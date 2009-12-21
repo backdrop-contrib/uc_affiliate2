@@ -1515,7 +1515,7 @@ function uc_affiliate2_order($op, $order, $status) {
         if ($comm_pct > 0) {
           //TODO should this be rounded to nearest penny???
           $comm = $data['total'] * $comm_pct;
-          $note = t('Level @level commission of @percent% recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
+          $note = t('Level @level commission recorded for affiliate uid:@affiliate', array('@affiliate' => $aff, '@percent' => $comm_pct*100, '@level' => $level, '@commission' => uc_currency_format($comm), '@ordertotal' => uc_currency_format($total), '@firstname' => $order->billing_first_name, '@lastname' => $order->billing_last_name));
           db_query("INSERT INTO {uc_affiliate2_commission} (order_id, aid, commission, commission_notes) VALUES (%d, %d, %f, '%s')", $order->order_id, $aff, $comm, $note);
           uc_order_comment_save($order->order_id, $user->uid, $note);
         }
