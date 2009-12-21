@@ -1209,7 +1209,7 @@ function uc_affiliate2_clicks($user) {
   $total_clicks = 0;
   foreach($clicks as $click_date => $clicks_count) {
     $click_date_end = $click_date + 86399;
-    $link = l(date('Y/m/d', $click_date), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
+    $link = l(date('Y/m/d', $click_date), 'user/' . $user->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
     $rows[] = array($link, $clicks_count);
     $total_clicks += $clicks_count;
   }
@@ -1356,12 +1356,12 @@ function uc_affiliate2_downline($user, $level = 1) {
 
   // create the data rows for our table
   while ($affiliate = db_fetch_object($result)) {
-    $user = user_load(array('uid' => $affiliate->uid));
+    $downline_user = user_load(array('uid' => $affiliate->uid));
     $rows[] = array(
-      theme('username', $user),
-      user_access('act as affiliate', $user) ? 'Yes' : 'No',
-      format_interval(time() - $user->created),
-      $user->access ? t('%time ago', array('%time' => format_interval(time() - $user->access))) : t('never'),
+      theme('username', $downline_user),
+      user_access('act as affiliate', $downline_user) ? 'Yes' : 'No',
+      format_interval(time() - $downline_user->created),
+      $downline_user->access ? t('%time ago', array('%time' => format_interval(time() - $downline_user->access))) : t('never'),
       $level,
       $affiliate->user_count ? $affiliate->user_count : 0
     );
@@ -1483,7 +1483,7 @@ function uc_affiliate2_order($op, $order, $status) {
         $product_commission_structure = unserialize($result->commission_structure);
         
         // If the commission is specifically "0", then we ignore this product.
-        if ($product_commission_structure === 0) {
+        if ($product_commission_structure === '0') {
           continue;
         }
         
