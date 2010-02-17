@@ -492,7 +492,7 @@ function uc_affiliate2_order_edit_commissions_submit($form, &$form_state) {
   $commission = db_fetch_object(db_query("SELECT * FROM {uc_affiliate2_commission} WHERE commission_id=%d", $form_state['values']['commission_id']));
   $commission->commission = $form_state['values']['commission'];
   $commission->commission_notes = $form_state['values']['commission_notes'];
-  uc_affiliate2_save_commission($commission);
+  uc_affiliate2_commission_save($commission);
   $form_state['redirect'] = 'admin/store/orders/'. $form_state['values']['order_id'] .'/affiliates';
 }
 
