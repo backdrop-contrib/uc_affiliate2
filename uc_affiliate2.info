@@ -6,10 +6,3 @@ dependencies[] = uc_order
 dependencies[] = uc_product
 package = Ubercart - extra
 
-core = 6.x
-; Information added by drupal.org packaging script on 2009-12-21
-version = "6.x-2.5-rc1"
-core = "6.x"
-project = "uc_affiliate2"
-datestamp = "1261408302"
-
