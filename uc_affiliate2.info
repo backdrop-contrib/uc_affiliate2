@@ -5,4 +5,5 @@ dependencies[] = uc_store
 dependencies[] = uc_order
 dependencies[] = uc_product
 package = Ubercart - extra
+core = 6.x
 
