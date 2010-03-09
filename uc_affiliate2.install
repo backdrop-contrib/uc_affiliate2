@@ -145,11 +145,6 @@ function uc_affiliate2_schema() {
         'size' => 'big',
         'not null' => TRUE,
       ),
-      'method' => array(
-        'type' => 'varchar',
-        'length' => 32,
-        'not null' => FALSE,
-      ),
     ),
   );
 
@@ -245,7 +240,6 @@ function uc_affiliate2_update_3() {
 function uc_affiliate2_update_6000() {
   $ret = array();
   db_add_field($ret, 'uc_affiliate2_commission', 'level', array('description' => t('Commission Level'), 'type' => 'int', 'not null' => FALSE, 'default' => 0));
-  db_add_field($ret, 'uc_affiliate2_paid', 'method', array('type' => 'varchar', 'length' => 32, 'not null' => FALSE));
   return $ret;
 }
 
