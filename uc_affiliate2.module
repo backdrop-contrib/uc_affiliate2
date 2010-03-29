@@ -946,6 +946,10 @@ function uc_affiliate2_click($username = 0) {
 
     $goto = join('/', $args);
   }
+  else if (arg(0) != variable_get('uc_affiliate2_path', 'affiliate')) {
+    // fix for the ?a= affiliate links (without this, node/3?a=4 will go to the homepage, and not to node/3)
+    $goto = $_GET['q'];
+  }
 
   // There are some case where you want to use the destination query like in
   // cart_links module where you direct to one url to perform an action and
