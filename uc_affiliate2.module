@@ -1243,13 +1243,7 @@ function _uc_affiliate2_get_commission($aff_id, $level = 1, $nid = 0, $model = '
   if ($product_commission->commmission_structure === '0') {
     return 0;
   }
-  // if the commission is defined, and this product is alone in the cart
-  if ($product_commission) {
-    $default_structure = $product_commission->commission_structure;
-  }
-  else {
-    $default_structure = variable_get('affiliate_commission_structure', array('5%','3%','2%','2%','1%'));
-  }
+  $default_structure = $product_commission->commission_structure;
 
   if (!empty($_SESSION['affiliate_cookie_timestamp'])) {
     $switch_after = variable_get('affiliate_commission_'. $_SESSION['affiliate_rid'] .'_switch_after', '2 days');
@@ -1295,7 +1289,13 @@ function uc_affiliate2_get_product_commission($account, $nid, $model = '') {
       }
     }
   }
-  return FALSE;
+
+  // Return a default object.
+  return (object)array(
+    'nid' => $nid,
+    'model' => NULL,
+    'commission_structure' => variable_get('affiliate_commission_structure', array('5%','3%','2%','2%','1%')),
+  );
 }
 
 /**
