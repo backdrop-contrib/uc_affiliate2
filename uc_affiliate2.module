@@ -545,21 +545,34 @@ function uc_affiliate2_order($op, $order, $status) {
 
   $statuses = variable_get('affiliate_commission_order_statuses', array('completed' => 'completed'));
 
-  if (variable_get('affiliate_enable_recurring_commission', 0)) {
-    if ($aid = _uc_affiliate2_get_user($order->uid)) {
-      $_SESSION['affiliate'] = $aid;
-    }
-  }
+  if($op == 'new') {
+    // Start with no affiliate.
+    $affiliate = 0;
 
-  if($op == 'new' && $_SESSION['affiliate']) {
-    db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $_SESSION['affiliate'], $order->order_id);
+    // If this is the user's session, and an affiliate is stored, use that.
+    if ($user->uid == $order->uid && !empty($_SESSION['affiliate'])) {
+      $affiliate = $_SESSION['affiliate'];
+    }
+
+    if (variable_get('affiliate_enable_recurring_commission', 0)) {
+      if ($aid = _uc_affiliate2_get_user($order->uid)) {
+        $affiliate = $aid;
+      }
+    }
+
+    if ($affiliate) {
+      db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $affiliate, $order->order_id);
+    }
   } else if($op == 'delete') {
     db_query("DELETE FROM {uc_affiliate2_orders} WHERE order_id = %d", $order->order_id);
   }
 
   // give commissions
   if ($op == 'update' && $statuses[$status] && !$statuses[$order->order_status]) {
-    uc_affiliate2_apply_commission($order, $_SESSION['affiliate']);
+    // Get the affiliate id associated with the order.
+    $affiliate = db_result(db_query('SELECT aid FROM {uc_affiliate2_orders} WHERE order_id = %d', $order->order_id));
+    // If there was no affiliate, $affiliate will be FALSE at this point.
+    uc_affiliate2_apply_commission($order, $affiliate);
   }
 
   // take commissions ( moving from a "give commissions" status to a one that doesn't have that privillege)
