@@ -315,7 +315,11 @@ function uc_affiliate2_commissions($user) {
   $total_sales = 0;
   $total_commission = 0;
   while ($commission = db_fetch_array($result)) {
-    $u = l($commission['billing_first_name'] .' '. $commission['billing_last_name'], 'user/'. $commission['uid']);
+    if($commission['uid'] > 0 && user_access('access user profiles')) {
+      $u = l($commission['billing_first_name'] .' '. $commission['billing_last_name'], 'user/'. $order['uid']);
+    } else {
+      $u = $commission['billing_first_name'] .' '. $commission['billing_last_name'];
+    }  
     $rows[] = array(
       $u,
       $commission['order_id'],
@@ -482,7 +486,7 @@ function uc_affiliate2_orders($user) {
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
-    if($order['uid'] > 0) {
+    if($order['uid'] > 0 && user_access('access user profiles')) {
       $u = l($order['billing_first_name'] .' '. $order['billing_last_name'], 'user/'. $order['uid']);
     } else {
       $u = $order['billing_first_name'] .' '. $order['billing_last_name'];
