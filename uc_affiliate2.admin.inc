@@ -214,6 +214,7 @@ function uc_affiliate2_banner_settings() {
     '#title' => t('Affiliate Banner Templates'),
     '#description' => t('The IMG tag(s) around which the url of the affiliate is wrapped around. Insert as many as you want.'),
     '#default_value' => variable_get('affiliate_banner_template', ''),
+    '#wysiwyg' => FALSE,
   );
   $form['affiliate_text_link_template'] = array(
     '#type' => 'textfield',
@@ -227,6 +228,7 @@ function uc_affiliate2_banner_settings() {
     '#description' => t('When using the html export function in the affiliate panel, this template is used for each product.
                         Allowed placeholders: [LINK], [TITLE], [IMG], [DESCRIPTION], [PRICE].'),
     '#default_value' => variable_get('affiliate_product_html_template', '<div id="prodcontain"><a href="[LINK]"><img src="[IMG]"></a><br /><div id="description">description:</div>[DESCRIPTION]<br /><div id="price">[PRICE]</div></div>'),
+    '#wysiwyg' => FALSE,
   );
 
   return system_settings_form($form);
@@ -347,6 +349,21 @@ function uc_affiliate2_admin_settings() {
     '#default_value' => variable_get('affiliate_no_commission_payment_methods', array()),
     '#description' => t('You can disable commission for certain Payment methods'),
     '#options' => $payment_methods,
+  );
+
+  $ip_masks = array(
+    'hide' => t("Hide IP addresses from users"),
+    'one' => t("Show the last number (*.*.*.123)"),
+    'two' => t("Show the last 2 numbers (*.*.123.123)"),
+    'first' => t("Show the first number (123.*.*.*)"),
+    'full' => t("Show the full IP (primarily for debug purposes)"),
+  );
+  $form['affiliate_ip_masking'] = array(
+    '#type' => 'radios',
+    '#title' => t('Mask IP addresses that your affiliates can see'),
+    '#default_value' => variable_get('affiliate_ip_masking', 'hide'),
+    '#description' => t('To help affiliates determine who bought what, you can show them the IP address of your customers. This can also be a privacy issue. In the US, do not show more than 2 numbers. Choose wisely. The administrator (user 1) is not affected by this option.'),
+    '#options' => $ip_masks,
   );
 
   return system_settings_form($form);

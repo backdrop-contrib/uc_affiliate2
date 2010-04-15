@@ -409,13 +409,17 @@ function uc_affiliate2_clicks($user) {
 /*
  * Display a detailed clicks view for the selected date
  */
-function uc_affiliate2_click_details($user) {
+function uc_affiliate2_click_details($account) {
+  global $user;
+
   drupal_set_title(t('Unique Clicks - Details'));
 
   $cookie_statuses = array(t('Not sent'), t('Sent (Unconfirmed)'), t('Sent (Confirmed)'));
 
   $output = t('Viewing clicks for: ') . date('Y/m/d', arg(5)) . '<br /> <br />';
   $output .= t('Cookie Status can be: Not sent, Sent (Unconfirmed), Sent (Confirmed).') . '<br />';
+
+  $ip_masking = variable_get('affiliate_ip_masking', 'hide');
 
   // setup the table
   $header = array(
@@ -425,6 +429,10 @@ function uc_affiliate2_click_details($user) {
     array('data' => t('Destination'), 'field' => "destination"),
     array('data' => t('Cookie Status'), 'field' => "cookie_status"),
   );
+  
+  if ($ip_masking == 'hide') {
+    unset($header[1]);
+  }
 
   // Create sql to display level of affiliate specified
   $dates = _uc_affiliate2_predefined_range(0);
@@ -432,32 +440,50 @@ function uc_affiliate2_click_details($user) {
   $sql = "SELECT * FROM {uc_affiliate2_clicks} WHERE aid = %d AND time BETWEEN %d AND %d";
 
   $sql .= tablesort_sql($header);
-  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
+  $result = db_query($sql, $account->uid, $dates['start'], $dates['end']);
 
   $total_clicks = 0;
   while ($click = db_fetch_array($result)) {
     if ($click['referrer']) {
       $click['referrer'] = l(t('Referrer'), $click['referrer']); // make it a link
-    } else {
-      $click['referrer'] = 'N/A';
+    }
+    else {
+      $click['referrer'] = t('N/A');
     }
 
     if ($click['destination']) {
       $click['destination'] = l(t('Destination'), $click['destination']); // make it a link
-    } else {
-      $click['destination'] = 'Frontpage';
+    }
+    else {
+      $click['destination'] = t('Frontpage');
+    }
+    
+    if ($click['client_ip']) {
+      $click['client_ip'] = _uc_affiliate2_mask_ip($click['client_ip']);
+    }
+    else {
+      $click['client_ip'] = t('N/A');
     }
 
-    $rows[] = array(format_date($click['time'], 'custom', 'Y/m/d H:i:s'),
-                    $click['client_ip'] ? $click['client_ip'] : 'N/A',
-                    $click['referrer'],
-                    $click['destination'],
-                    ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
-                    );
+    $row = array(
+      format_date($click['time'], 'custom', 'Y/m/d H:i:s'),
+      $click['client_ip'],
+      $click['referrer'],
+      $click['destination'],
+      ($click['cookie_status'] === NULL) ? 'Not specified' : $cookie_statuses[$click['cookie_status']]
+    );
+    
+    if ($ip_masking == 'hide') {
+      unset($row[1]);
+    }
 
+    $rows[] = $row;
     $total_clicks += 1;
   }
-  $rows[] = array(t('Total:'), $total_clicks);
+  $rows[] = array(
+    array('data' => t('Total:'), 'colspan' => ($ip_masking == 'hide' ? 3 : 4), 'align' => 'right'),
+    $total_clicks
+  );
 
   // Build the output
   global $pager_total_items;
@@ -465,6 +491,44 @@ function uc_affiliate2_click_details($user) {
   $output .= theme('table', $header, $rows);
 
   return $output;
+}
+
+/**
+ * Mask the IP address per the defined setting.
+ */
+function _uc_affiliate2_mask_ip($ip) {
+  global $user;
+  
+  if ($user->uid == 1) {
+    return $ip;
+  }
+  
+  $ip_masking = variable_get('affiliate_ip_masking', 'hide');
+  $ip_numbers = explode('.', $ip);
+  
+  switch ($ip_masking) {
+    default: // = case 'hide':
+      $ip_numbers[3] = '*';
+    case 'one':
+      $ip_numbers[2] = '*';
+    case 'two':
+      $ip_numbers[1] = '*';
+      $ip_numbers[0] = '*';
+      break;
+  
+    case 'first':
+      $ip_numbers[1] = '*';
+      $ip_numbers[2] = '*';
+      $ip_numbers[3] = '*';
+      break;
+  
+    case 'full':
+      break;
+  }
+  
+  $ip = implode('.', $ip_numbers);
+  
+  return $ip;
 }
 
 /*
@@ -626,5 +690,3 @@ function uc_affiliate2_upline($user) {
   }
   return $output;
 }
-
-
