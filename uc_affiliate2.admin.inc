@@ -78,9 +78,9 @@ function uc_affiliate2_admin_manage() {
       $status[$account->status],
       format_interval(time() - $account->created),
       $account->access ? t('@time ago', array('@time' => format_interval(time() - $account->access))) : t('never'),
-      $clicks[$account->uid] ? $clicks[$account->uid] : '0',
-      $users[$account->uid] ? $users[$account->uid] : '0',
-      $orders[$account->uid] ? $orders[$account->uid] : '0',
+      !empty($clicks[$account->uid]) ? $clicks[$account->uid] : '0',
+      !empty($users[$account->uid]) ? $users[$account->uid] : '0',
+      !empty($orders[$account->uid]) ? $orders[$account->uid] : '0',
     );
   }
 

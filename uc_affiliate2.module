@@ -242,7 +242,7 @@ function uc_affiliate2_menu() {
   );
 
   $items['uc_affiliate2/ahah/%'] = array(
-    'page callback' => uc_affiliate2_ahah,
+    'page callback' => 'uc_affiliate2_ahah',
     'page arguments' => array(2),
     'access arguments' => $access,
     'type' => MENU_CALLBACK,
