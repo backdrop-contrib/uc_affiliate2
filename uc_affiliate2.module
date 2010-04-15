@@ -1038,7 +1038,7 @@ function uc_affiliate2_token_values($type, $object = NULL) {
   $context = array(
     'revision' => 'altered',
     'type' => 'order_product',
-    'subject' => array('order' => $order),
+    'subject' => array('order' => $object),
   );
 
   switch ($type) {
