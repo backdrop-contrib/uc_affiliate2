@@ -830,7 +830,7 @@ function _uc_affiliate2_predefined_range($type=0, $substract_timezone = true) {
 
 
   $now = time();
-  $now = (int)format_date($now, custom, 'U');
+  $now = (int)format_date($now, 'custom', 'U');
 
   $dates = array();
 
