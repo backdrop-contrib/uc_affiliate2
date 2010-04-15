@@ -316,7 +316,7 @@ function uc_affiliate2_commissions($user) {
   $total_commission = 0;
   while ($commission = db_fetch_array($result)) {
     if($commission['uid'] > 0 && user_access('access user profiles')) {
-      $u = l($commission['billing_first_name'] .' '. $commission['billing_last_name'], 'user/'. $order['uid']);
+      $u = l($commission['billing_first_name'] .' '. $commission['billing_last_name'], 'user/'. $user->uid);
     } else {
       $u = $commission['billing_first_name'] .' '. $commission['billing_last_name'];
     }  
@@ -329,9 +329,9 @@ function uc_affiliate2_commissions($user) {
       uc_currency_format($commission['commission'])
     );
     $total_sales += $commission['order_total'];
-    $total_commmission += $commission['commission'];
+    $total_commission += $commission['commission'];
   }
-  $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales), uc_currency_format($total_commmission));
+  $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales), uc_currency_format($total_commission));
 
   $output = theme('table', $header, $rows);
   $output .= drupal_get_form('uc_affiliate2_time_selection_form');
@@ -352,12 +352,17 @@ function uc_affiliate2_clicks($user) {
 
   $clicks = array();
   while ($click_day = db_fetch_array($result)) {
-    $click_day['time'] = (int)format_date($click_day['time'], custom, 'U');
+    $click_day['time'] = (int)format_date($click_day['time'], 'custom', 'U');
 
     $date = date('Y/m/d', $click_day['time']);
     $date_unix = strtotime($date);
 
-    $clicks[$date_unix] += 1;
+    if (isset($clicks[$date_unix])) {
+      $clicks[$date_unix] += 1;
+    }
+    else {
+      $clicks[$date_unix] = 1;
+    }
   }
 
   /*
@@ -544,6 +549,7 @@ function uc_affiliate2_downline($user, $level = 1) {
   $result = pager_query($sql, 25);
 
   // create the data rows for our table
+  $rows = array();
   while ($affiliate = db_fetch_object($result)) {
     $downline_user = user_load(array('uid' => $affiliate->uid));
     $rows[] = array(
