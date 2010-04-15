@@ -14,7 +14,7 @@
  * Implementation of hook_help().
  */
 function uc_affiliate2_help($path, $arg) {
-  switch ($section) {
+  switch ($path) {
     case 'admin/modules#description':
       return t('Tracks affiliate referrals and commissions');
       break;
@@ -971,8 +971,10 @@ function uc_affiliate2_click($username = 0) {
     $goto .= '?destination='. $_REQUEST['destination'];
   }
 
+  $found_affiliate = NULL;
+
   // ready to go, go through all the cases
-  if ($subdomain && $subdomain != 'www') { // subdomain ($affiliate.site.com)
+  if (isset($subdomain) && $subdomain != 'www') { // subdomain ($affiliate.site.com)
     $found_affiliate = FALSE;
     $account = user_load(array('name' => $subdomain));
 
@@ -996,7 +998,7 @@ function uc_affiliate2_click($username = 0) {
       $found_affiliate = TRUE;
     }
   }
-  else if ($_REQUEST['a']) { // ?a=$affiliate
+  else if (!empty($_REQUEST['a'])) { // ?a=$affiliate
     $found_affiliate = FALSE;
     $account = user_load(array('uid' => $_REQUEST['a']));
 
@@ -1004,13 +1006,13 @@ function uc_affiliate2_click($username = 0) {
       $found_affiliate = TRUE;
     }
   }
-  else if ($_COOKIE['affiliate'] && !$_SESSION['affiliate']) { // repopulate the session from the cookie
+  else if (!empty($_COOKIE['affiliate']) && empty($_SESSION['affiliate'])) { // repopulate the session from the cookie
     $_SESSION['affiliate'] = $_COOKIE['affiliate']['uid'];
     $_SESSION['affiliate_cookie_timestamp'] = $_COOKIE['affiliate']['timestamp'];
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
   }
 
-  if($_COOKIE['affiliate']['update_click']) {
+  if(!empty($_COOKIE['affiliate']['update_click'])) {
     // The update_click cookie was set to the click_id so we can know exactly which click to update.
     db_query('UPDATE {uc_affiliate2_clicks} SET cookie_status = 2 WHERE click_id = %d', $_COOKIE['affiliate']['update_click']);
     setcookie('affiliate[update_click]', 0, time() - 3600, '/');
