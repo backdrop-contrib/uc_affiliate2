@@ -546,7 +546,8 @@ function uc_affiliate2_downline($user, $level = 1) {
   $sql .= "WHERE u$next.uid = ". $user->uid;
 
   $sql .= tablesort_sql($header);
-  $result = pager_query($sql, 25);
+  $limit = 25;
+  $result = pager_query($sql, $limit);
 
   // create the data rows for our table
   $rows = array();
@@ -573,7 +574,7 @@ function uc_affiliate2_downline($user, $level = 1) {
   global $pager_total_items;
   $output .= '<h2>'. t('Total Level !level, Customers: !customers', array('!level' => $level, '!customers' => $pager_total_items[0])) .'</h2>';
   $output .= theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 50, 0);
+  $output .= theme('pager', NULL, $limit, 0);
   return $output;
 }
 
