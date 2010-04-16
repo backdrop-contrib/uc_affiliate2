@@ -651,7 +651,8 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
       foreach($data['products'] as $pid => $product_data) {
         foreach($product_data as $model => $model_data) {
           $comm = _uc_affiliate2_get_commission($aff, $level, $pid, $model);
-          if ($comm_pct = _uc_affiliate2_commission_is_percentage($comm) !== FALSE) {
+          $comm_pct = _uc_affiliate2_commission_is_percentage($comm);
+          if ($comm_pct !== FALSE) {
             $commission += $model_data['total'] * $comm_pct / 100;
           }
           else {
@@ -659,6 +660,7 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
           }
         }
       }
+      
       $comm = new stdClass();
       $comm->order_id = $order->order_id;
       $comm->aid = $aff;
