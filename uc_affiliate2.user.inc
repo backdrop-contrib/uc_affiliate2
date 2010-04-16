@@ -305,9 +305,10 @@ function uc_affiliate2_commissions($user) {
 
   // Create sql to affiliate's commissions
   $dates = _uc_affiliate2_predefined_range(arg(4));
-  $sql = 'SELECT uco.uid, uco.billing_first_name, uco.billing_last_name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission
+  $sql = 'SELECT uco.uid, u.name, ac.order_id, uco.created as order_date, ac.commission_notes, uco.order_total, ac.commission
             FROM {uc_affiliate2_commission} ac
-              INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
+              INNER JOIN {uc_orders} uco ON ac.order_id = uco.order_id
+              LEFT JOIN {users} u ON uco.uid = u.uid
                 WHERE aid = %d AND uco.created BETWEEN %d AND %d';
   $sql .= tablesort_sql($header);
   $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
@@ -316,9 +317,16 @@ function uc_affiliate2_commissions($user) {
   $total_commission = 0;
   while ($commission = db_fetch_array($result)) {
     if($commission['uid'] > 0 && user_access('access user profiles')) {
-      $u = l($commission['billing_first_name'] .' '. $commission['billing_last_name'], 'user/'. $user->uid);
+      // $commission['name'] represents the name that you can see when visiting the profile
+      $u = l($commission['name'], 'user/'. $commission['uid']);
     } else {
-      $u = $commission['billing_first_name'] .' '. $commission['billing_last_name'];
+      // in this case, we only show a number
+      if ($commission['uid'] == 0) {
+        $u = t('Unknown');
+      }
+      else {
+        $u = t('User #') . $commission['uid'];
+      }
     }  
     $rows[] = array(
       $u,
@@ -547,18 +555,26 @@ function uc_affiliate2_orders($user) {
   );
 
   // Create sql to affiliate's commissions
-  $sql = 'SELECT uco.*, ao.order_id
-            FROM {uc_affiliate2_orders} ao INNER JOIN {uc_orders} uco on ao.order_id = uco.order_id
-              WHERE ao.aid = %d';
+  $sql = 'SELECT uco.*, ao.order_id, u.name
+            FROM {uc_affiliate2_orders} ao INNER JOIN {uc_orders} uco ON ao.order_id = uco.order_id
+              LEFT JOIN {users} u ON uco.uid = u.uid
+                WHERE ao.aid = %d';
   $sql .= tablesort_sql($header);
   $result = db_query($sql, $user->uid);
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
     if($order['uid'] > 0 && user_access('access user profiles')) {
-      $u = l($order['billing_first_name'] .' '. $order['billing_last_name'], 'user/'. $order['uid']);
+      // $order['name'] represents the name that you can see when visiting the profile
+      $u = l($order['name'], 'user/'. $order['uid']);
     } else {
-      $u = $order['billing_first_name'] .' '. $order['billing_last_name'];
+      // in this case, we only show a number
+      if ($order['uid'] == 0) {
+        $u = t('Unknown');
+      }
+      else {
+        $u = t('User #') . $order['uid'];
+      }
     }
 
     $rows[] = array(
