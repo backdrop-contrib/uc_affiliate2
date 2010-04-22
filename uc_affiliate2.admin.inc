@@ -332,11 +332,17 @@ function uc_affiliate2_admin_settings() {
     '#description' => t("If enabled, this module will record affiliate actions if customers visit the site through an affiliate subdomain, like john.thissite.com. Enable this only if drupal is not installed on a subdomain."),
     '#default_value' => variable_get('affiliate_enable_subdomain_handling', 0),
   );
-  $form['affiliate_enable_recurring_commission'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable affiliate commissions for subsequent orders'),
-    '#description' => t("If enabled, on subsequent orders after a user has made a purchase will grant commissions to the original affiliate if no affiliate information is available from the session or cookie."),
-    '#default_value' => variable_get('affiliate_enable_recurring_commission', 0),
+  $form['affiliate_subsequent_order_commissions'] = array(
+    '#type' => 'radios',
+    '#title' => t('Affiliate commissions for future orders placed by users they referred'),
+    '#description' => t('If an affiliate cookie is present when a user creates an account, that user is associated with the affiliate. Using this option, you can control whether the affiliate associated with the user gets commissions, or whether any affiliate whose cookies may be present when the user places an order should get the commissions instead.'),
+    '#options' => array(
+      'none' => t('Only use affiliate cookies that are available at the time of order placement'),
+      'enable' => t('Use affiliate cookies at the time of order placement, but if there are none, fall back on the affiliate that first referred the user'),
+      'override' => t('Give commissions to the affiliate associated with the user, but if there is none, fall back on any affiliate cookies that may be present'),
+      'exclusive' => t('Only give commissions to an affiliate that is associated with the user'),
+    ),
+    '#default_value' => variable_get('affiliate_subsequent_order_commissions', 'none'),
   );
 
   foreach (_payment_method_list() as $method) {

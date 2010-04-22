@@ -554,10 +554,27 @@ function uc_affiliate2_order($op, $order, $status) {
       $affiliate = $_SESSION['affiliate'];
     }
 
-    if (variable_get('affiliate_enable_recurring_commission', 0)) {
-      if ($aid = _uc_affiliate2_get_user($order->uid)) {
-        $affiliate = $aid;
-      }
+    switch (variable_get('affiliate_subsequent_order_commissions', 'none')) {
+      case 'none':
+        // No special handling for subsequent orders.
+        break;
+      case 'enable':
+        // Break out if there already is an affiliate.
+        if ($affiliate) {
+          break;
+        }
+        // Intentionally fall into the next case to apply the original affiliate.
+      case 'override':
+        // Use the affiliate that originally referred the user if there is one.
+        if ($aid = _uc_affiliate2_get_user($order->uid)) {
+          $affiliate = $aid;
+        }
+        break;
+      case 'exclusive':
+        // It doesn't matter what's in the session. Only use an affiliate the
+        // user might be under.
+        $affiliate = _uc_affiliate2_get_user($order->uid);
+        break;
     }
 
     if ($affiliate) {

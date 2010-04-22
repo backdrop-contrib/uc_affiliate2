@@ -301,3 +301,15 @@ function uc_affiliate2_update_6003() {
 
   return $ret;
 }
+
+/**
+ * Rename/convert the affiliate_enable_recurring_commission variable
+ * into the newer affiliate_subsequent_order_commissions variable.
+ */
+function uc_affiliate2_update_6004() {
+  $old_value = variable_get('affiliate_enable_recurring_commission', 0);
+  $new_value = $old_value? 'enable' : 'none';
+  variable_set('affiliate_subsequent_order_commissions', $new_value);
+  variable_del('affiliate_enable_recurring_commission');
+  return array();
+}
