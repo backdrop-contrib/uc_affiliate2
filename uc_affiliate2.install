@@ -249,7 +249,7 @@ function uc_affiliate2_update_6000() {
 function uc_affiliate2_update_6001() {
   $ret = array();
   db_add_field($ret, 'uc_affiliate2_product_commission', 'pcid', array('type' => 'int', 'not null' => TRUE));
-  db_query('UPDATE {uc_affiliate2_product_commission} set pcid=nid');
+  $ret[] = update_sql('UPDATE {uc_affiliate2_product_commission} set pcid=nid');
 
 
   db_add_field($ret, 'uc_affiliate2_product_commission', 'model', array('type' => 'varchar', 'length' => 255, 'not null' => FALSE, 'default' => ''));
@@ -295,7 +295,7 @@ function uc_affiliate2_update_6003() {
   $result = db_query('SELECT pcid, commission_structure FROM {uc_affiliate2_product_commission}');
   while ($comm = db_fetch_object($result)) {
     $commission = serialize(explode(',', str_replace(',', '%,', unserialize($comm->commission_structure)) .'%'));
-    db_query("UPDATE {uc_affiliate2_product_commission} SET commission_structure = '%s' WHERE pcid = %d", $commission, $comm->pcid); 
+    $ret[] = update_sql("UPDATE {uc_affiliate2_product_commission} SET commission_structure = '%s' WHERE pcid = %d", $commission, $comm->pcid); 
     $ret[] = array('success' => TRUE, 'query' => "Updating product commission structure - ". $comm->pcid);
   }
 
