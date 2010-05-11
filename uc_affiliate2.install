@@ -311,5 +311,19 @@ function uc_affiliate2_update_6004() {
   $new_value = $old_value? 'enable' : 'none';
   variable_set('affiliate_subsequent_order_commissions', $new_value);
   variable_del('affiliate_enable_recurring_commission');
+  
+  return array();
+}
+
+/**
+ * Remove "switch_after" for cookied affiliate roles. We are no longer using it.
+ */
+function uc_affiliate2_update_6005() {
+  $roles = user_roles(FALSE, 'act as affiliate');
+
+  foreach ($roles as $rid => $role) {
+    variable_del('affiliate_commission_'. $rid .'_switch_after');
+  }
+  
   return array();
 }

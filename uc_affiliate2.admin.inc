@@ -269,12 +269,6 @@ function uc_affiliate2_commission_settings() {
       '#default_value' => implode(',', variable_get('affiliate_commission_structure_'. $rid, array('5%','3%','2%','2%','1%'))),
       '#size' => 40
     );
-    $form['affiliate_settings_role_'. $rid]['affiliate_commission_'. $rid .'_switch_after'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Switch to comission settings per role after'),
-      '#description' => t('Time after which the per role comission structure settings will be used, instead of the default ones. Strtotime syntax.'),
-      '#default_value' => variable_get('affiliate_commission_'. $rid .'_switch_after', '2 days'),
-     );
     $form['affiliate_settings_role_'. $rid]['affiliate_set_cookie_'. $rid] = array(
       '#type' => 'checkbox',
       '#title' => t('Set the affiliate cookie for the visiting user.'),

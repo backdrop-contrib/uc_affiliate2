@@ -3,6 +3,7 @@ CHANGELOG for the uc_affiliate2 module
 Version 2.5
 **************
 -- removed subdomain support (see drupal.org/project/domain for the right way to do this)
+-- removed the "switch after" setting for cookied roles. It was unused and confusing.
 -- functionality for admin's to appy/remove commission from an order.
 -- separate tab to view the commissions on an order (with functionality to edit or remove specific commission)
 -- add optional feature to allow subsequent orders for a member to credit the commissions back to the previous affiliate.

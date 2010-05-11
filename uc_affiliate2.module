@@ -1262,14 +1262,7 @@ function _uc_affiliate2_get_commission($aff_id, $level = 1, $nid = 0, $model = '
   $default_structure = $product_commission->commission_structure;
 
   if (!empty($_SESSION['affiliate_cookie_timestamp'])) {
-    $switch_after = variable_get('affiliate_commission_'. $_SESSION['affiliate_rid'] .'_switch_after', '2 days');
-
-    if (strtotime($switch_after, $_SESSION['affiliate_cookie_timestamp']) <= time()) {
-      $structure = variable_get('affiliate_commission_structure_'. $_SESSION['affiliate_rid'], array('5%','3%','2%','2%','1%'));
-    }
-    else {
-      $structure = $default_structure;
-    }
+    $structure = variable_get('affiliate_commission_structure_'. $_SESSION['affiliate_rid'], array('5%','3%','2%','2%','1%'));
   }
   else {
     $structure = $default_structure;
