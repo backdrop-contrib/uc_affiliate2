@@ -938,18 +938,6 @@ function _uc_affiliate2_get_upline_ids($aff) {
   }
 }
 
-/**
- * Extract the subdomain from the host variable
- */
-function _uc_affiliate2_get_subdomain() {
-  $host_array = explode('.', $_SERVER['HTTP_HOST']);
-  if (count($host_array) <= 2) {
-    return '';
-  }
-
-  return $host_array[0];
-}
-
 function _uc_affiliate2_get_domain() {
   global $base_url;
 
@@ -963,11 +951,6 @@ function _uc_affiliate2_get_domain() {
  * Records affiliate ID in the user session and counts the click.
  */
 function uc_affiliate2_click($username = 0) {
-  // If the subdomain handling is enabled, see if the URL references an affiliate in the subdomain
-  if (variable_get('affiliate_enable_subdomain_handling', 0)) {
-    $subdomain = _uc_affiliate2_get_subdomain();
-  }
-
   // where should we redirect to, if all this is a success
   $num_args = func_num_args();
   $goto = '<front>';
@@ -993,15 +976,7 @@ function uc_affiliate2_click($username = 0) {
   $found_affiliate = NULL;
 
   // ready to go, go through all the cases
-  if (isset($subdomain) && $subdomain != 'www') { // subdomain ($affiliate.site.com)
-    $found_affiliate = FALSE;
-    $account = user_load(array('name' => $subdomain));
-
-    if (_uc_affiliate2_clicked($account, $goto)) {
-      $found_affiliate = TRUE;
-    }
-  }
-  else if (is_numeric($username) && $username > 0) { // regular (affiliate/$uid)
+  if (is_numeric($username) && $username > 0) { // regular (affiliate/$uid)
     $found_affiliate = FALSE;
     $account = user_load(array('uid' => $username));
 

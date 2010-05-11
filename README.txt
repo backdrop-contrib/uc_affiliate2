@@ -1,18 +1,14 @@
 This (uc_affiliate2) is a module providing affiliate functionality for Ubercart.
 
-Initial activity started here:
-http://www.ubercart.org/forum/support/1586/how_are_people_doing_affilate_stuff_ubercart
-Then moved here:
-http://www.ubercart.org/contrib/2446
-
-Initial authors
-********
+Initial drupal.org version based on code by:
+********************************************
 joe turgeon (http://arithmetric.com)
 jhuckabee
 VitaLife
 thierry_gd (from Drupal affiliate module)
 davegan
-bojanz (http://vividintent.com)
+
+The ocde first used has since then been rewritten.
 
 Features
 ********
@@ -22,14 +18,13 @@ Monthly report of sales/commissions per affiliate in the admin section
 Ability to create affiliate links (both text and image)
 Product level link generation (e.g. generate a link for the actual product vs just the website), export to CSV or HTML
 Ability to add cookies so that affiliates get credit for return visits even though they didn't go through original affiliate link.
-Easy customer dashboard
 Per product commissions
 Multiple levels of commissioning
+Fixed-rate and percentage commissions.
+Token and Conditional Actions integration.
 
 Notes
 *****
-- The subdomain affiliate link handling is disabled by default from version 1.4.
-You can enable it from the Affiliate Settings page in Ubercart admin.
 - The admin ( user uid: 1) can't be an affiliate
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
@@ -39,7 +34,7 @@ If you assign two roles with affiliate permissions to a user, bad things happen 
   $conf['uc_affiliate2_path'] = 'my_affiliate_path';
   in the site's settings.php file
 
-Upgrading from 2.0-rc1 and 2.0-rc2
+Upgrading from 2.0-rc2
 **********************************
 - You must resave your affilite settings for the commission cancellation to work
 - Commission cancellation (for previously added orders) might leave incorrect admin counters, because of a earlier time&date bug
@@ -53,4 +48,3 @@ Aaron Schiff (http://www.ecopaper.com/)
 Polish Your Image (http://polishyourimage.com)
 A Mountain Top, LLC (http://amountaintop.com)
 Health Curve, LLC (http://www.myhealthcurve.com) 
-You?

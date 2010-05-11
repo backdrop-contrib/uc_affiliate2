@@ -323,14 +323,8 @@ function uc_affiliate2_admin_settings() {
   $form['affiliate_invalid_redirect'] = array(
     '#type' => 'textfield',
     '#title' => t('On an invalid affiliate URL, redirect to'),
-    '#description' => t('When an invalid username is used as a subdomain, the user will be redirected to this URL.'),
+    '#description' => t('When an invalid username is used as an affiliate, the user will be redirected to this URL.'),
     '#default_value' => variable_get('affiliate_invalid_redirect', '')
-  );
-  $form['affiliate_enable_subdomain_handling'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable affiliate subdomain handling'),
-    '#description' => t("If enabled, this module will record affiliate actions if customers visit the site through an affiliate subdomain, like john.thissite.com. Enable this only if drupal is not installed on a subdomain."),
-    '#default_value' => variable_get('affiliate_enable_subdomain_handling', 0),
   );
   $form['affiliate_subsequent_order_commissions'] = array(
     '#type' => 'radios',
