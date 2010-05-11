@@ -8,7 +8,7 @@ VitaLife
 thierry_gd (from Drupal affiliate module)
 davegan
 
-The ocde first used has since then been rewritten.
+The code first used has since then been rewritten.
 
 Features
 ********
