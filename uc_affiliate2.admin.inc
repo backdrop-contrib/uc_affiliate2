@@ -280,9 +280,6 @@ function uc_affiliate2_commission_settings() {
 function uc_affiliate2_commission_settings_validate($form, &$form_state) {
   $roles = user_roles(FALSE, 'act as affiliate');
   foreach ($roles as $rid => $role) {
-    if (!strtotime($form_state['values']['affiliate_cookie_lifetime_'. $rid])) {
-      form_set_error('affiliate_cookie_lifetime_'. $rid, t('Invalid strtotime syntax.'));
-    }
     $form_state['values']['affiliate_commission_structure_'. $rid] = explode(',', $form_state['values']['affiliate_commission_structure_'. $rid]);
   }
   $form_state['values']['affiliate_commission_structure'] = explode(',', $form_state['values']['affiliate_commission_structure']);
@@ -379,6 +376,10 @@ function uc_affiliate2_admin_settings_validate($form, &$form_state) {
 
   if (!empty($url) && ($url != check_url($url) || strpos($url, '://') !== FALSE)) {
     form_set_error('affiliate_invalid_redirect', t('Please enter a valid Drupal path, without the http and domain parts.'));
+  }
+  
+  if (!strtotime($form_state['values']['affiliate_cookie_lifetime'])) {
+    form_set_error('affiliate_cookie_lifetime', t('Invalid strtotime syntax.'));
   }
 }
 
