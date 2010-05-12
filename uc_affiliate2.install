@@ -327,3 +327,17 @@ function uc_affiliate2_update_6005() {
   
   return array();
 }
+
+/**
+ * Remove the old cookie tracking variables
+ */
+function uc_affiliate2_update_6006() {
+  $roles = user_roles(FALSE, 'act as affiliate');
+
+  foreach ($roles as $rid => $role) {
+    variable_del('affiliate_set_cookie_'. $rid);
+    variable_del('affiliate_cookie_lifetime_'. $rid);
+  }
+  
+  return array();
+}

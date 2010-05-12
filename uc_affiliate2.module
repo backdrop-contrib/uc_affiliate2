@@ -1157,11 +1157,11 @@ function _uc_affiliate2_clicked($account, $target_path) {
   $rid = _uc_affiliate2_get_user_rid($account->roles);
 
   // Do we need to set the cookie? For how long?
-  $set_cookie = variable_get('affiliate_set_cookie_'. $rid, 0);
+  $set_cookie = variable_get('affiliate_set_cookie', 0);
   $time = time();
 
   if ($set_cookie) {
-    $cookie_lifetime = variable_get('affiliate_cookie_lifetime_'. $rid, '1 year');
+    $cookie_lifetime = variable_get('affiliate_cookie_lifetime', '1 year');
     $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
 
     setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');

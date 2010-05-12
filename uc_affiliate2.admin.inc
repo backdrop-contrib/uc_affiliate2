@@ -260,7 +260,7 @@ function uc_affiliate2_commission_settings() {
       '#type' => 'fieldset',
       '#title' => t('Settings for @role', array('@role' => $role)),
       '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
     );
     $form['affiliate_settings_role_'. $rid]['affiliate_commission_structure_'. $rid] = array(
       '#type' => 'textfield',
@@ -268,18 +268,6 @@ function uc_affiliate2_commission_settings() {
       '#description' => t("Sets the commission structure for the role, when the user has returned via cookie. This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy. Commission can either be represented as percentages by adding a '%' symbol after the number or as a fixed amount in the stores currency by a number with no symbol. Example: 5%,4%,2%,2%,1%"),
       '#default_value' => implode(',', variable_get('affiliate_commission_structure_'. $rid, array('5%','3%','2%','2%','1%'))),
       '#size' => 40
-    );
-    $form['affiliate_settings_role_'. $rid]['affiliate_set_cookie_'. $rid] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Set the affiliate cookie for the visiting user.'),
-      '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
-      '#default_value' => variable_get('affiliate_set_cookie_'. $rid, 0),
-    );
-    $form['affiliate_settings_role_'. $rid]['affiliate_cookie_lifetime_'. $rid] = array(
-      '#type' => 'textfield',
-      '#title' => t('Cookie Lifetime'),
-      '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
-      '#default_value' => variable_get('affiliate_cookie_lifetime_'. $rid, '1 year'),
     );
   }
 
@@ -304,6 +292,26 @@ function uc_affiliate2_commission_settings_validate($form, &$form_state) {
  * Define the affiliate admin settings form
  */
 function uc_affiliate2_admin_settings() {
+  $form['affiliate_cookie_tracking'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cookie tracking'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  
+  $form['affiliate_cookie_tracking']['affiliate_set_cookie'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Set the affiliate cookie for the visiting user.'),
+    '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
+    '#default_value' => variable_get('affiliate_set_cookie', 0),
+  );
+  $form['affiliate_cookie_tracking']['affiliate_cookie_lifetime'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Cookie Lifetime'),
+    '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
+    '#default_value' => variable_get('affiliate_cookie_lifetime', '1 year'),
+  );
+  
   foreach (uc_order_status_list('general') as $status) {
     $statuses[$status['id']] = $status['title'];
   }
