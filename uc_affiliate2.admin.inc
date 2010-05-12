@@ -291,27 +291,7 @@ function uc_affiliate2_commission_settings_validate($form, &$form_state) {
 /**
  * Define the affiliate admin settings form
  */
-function uc_affiliate2_admin_settings() {
-  $form['affiliate_cookie_tracking'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Cookie tracking'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-  
-  $form['affiliate_cookie_tracking']['affiliate_set_cookie'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Set the affiliate cookie for the visiting user.'),
-    '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
-    '#default_value' => variable_get('affiliate_set_cookie', 0),
-  );
-  $form['affiliate_cookie_tracking']['affiliate_cookie_lifetime'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Cookie Lifetime'),
-    '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
-    '#default_value' => variable_get('affiliate_cookie_lifetime', '1 year'),
-  );
-  
+function uc_affiliate2_admin_settings() {  
   foreach (uc_order_status_list('general') as $status) {
     $statuses[$status['id']] = $status['title'];
   }
@@ -327,18 +307,6 @@ function uc_affiliate2_admin_settings() {
     '#title' => t('On an invalid affiliate URL, redirect to'),
     '#description' => t('When an invalid username is used as an affiliate, the user will be redirected to this URL.'),
     '#default_value' => variable_get('affiliate_invalid_redirect', '')
-  );
-  $form['affiliate_subsequent_order_commissions'] = array(
-    '#type' => 'radios',
-    '#title' => t('Affiliate commissions for future orders placed by users they referred'),
-    '#description' => t('If an affiliate cookie is present when a user creates an account, that user is associated with the affiliate. Using this option, you can control whether the affiliate associated with the user gets commissions, or whether any affiliate whose cookies may be present when the user places an order should get the commissions instead.'),
-    '#options' => array(
-      'none' => t('Only use affiliate cookies that are available at the time of order placement'),
-      'enable' => t('Use affiliate cookies at the time of order placement, but if there are none, fall back on the affiliate that first referred the user'),
-      'override' => t('Give commissions to the affiliate associated with the user, but if there is none, fall back on any affiliate cookies that may be present'),
-      'exclusive' => t('Only give commissions to an affiliate that is associated with the user'),
-    ),
-    '#default_value' => variable_get('affiliate_subsequent_order_commissions', 'none'),
   );
 
   // Only display this setting if Ubercart Payment is enabled. This prevents a WSOD.
@@ -369,6 +337,38 @@ function uc_affiliate2_admin_settings() {
     '#default_value' => variable_get('affiliate_ip_masking', 'hide'),
     '#description' => t('To help affiliates determine who bought what, you can show them the IP address of your customers. This can also be a privacy issue. In the US, do not show more than 2 numbers. Choose wisely. The administrator (user 1) is not affected by this option.'),
     '#options' => $ip_masks,
+  );
+  
+  $form['affiliate_cookie_tracking'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cookie tracking'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  
+  $form['affiliate_cookie_tracking']['affiliate_set_cookie'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Set the affiliate cookie for the visiting user.'),
+    '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
+    '#default_value' => variable_get('affiliate_set_cookie', 0),
+  );
+  $form['affiliate_cookie_tracking']['affiliate_cookie_lifetime'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Cookie Lifetime'),
+    '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
+    '#default_value' => variable_get('affiliate_cookie_lifetime', '1 year'),
+  );
+  $form['affiliate_cookie_tracking']['affiliate_subsequent_order_commissions'] = array(
+    '#type' => 'radios',
+    '#title' => t('Affiliate commissions for future orders placed by users they referred'),
+    '#description' => t('If an affiliate cookie is present when a user creates an account, that user is associated with the affiliate. Using this option, you can control whether the affiliate associated with the user gets commissions, or whether any affiliate whose cookies may be present when the user places an order should get the commissions instead.'),
+    '#options' => array(
+      'none' => t('Only use affiliate cookies that are available at the time of order placement'),
+      'enable' => t('Use affiliate cookies at the time of order placement, but if there are none, fall back on the affiliate that first referred the user'),
+      'override' => t('Give commissions to the affiliate associated with the user, but if there is none, fall back on any affiliate cookies that may be present'),
+      'exclusive' => t('Only give commissions to an affiliate that is associated with the user'),
+    ),
+    '#default_value' => variable_get('affiliate_subsequent_order_commissions', 'none'),
   );
 
   return system_settings_form($form);
