@@ -333,17 +333,20 @@ function uc_affiliate2_admin_settings() {
     '#default_value' => variable_get('affiliate_subsequent_order_commissions', 'none'),
   );
 
-  foreach (_payment_method_list() as $method) {
-    $payment_methods[$method['id']] = $method['name'];
+  // Only display this setting if Ubercart Payment is enabled. This prevents a WSOD.
+  if (function_exists('_payment_method_list')) {
+    foreach (_payment_method_list() as $method) {
+      $payment_methods[$method['id']] = $method['name'];
+    }
+  
+    $form['affiliate_no_commission_payment_methods'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Disable commission for these Payment methods'),
+      '#default_value' => variable_get('affiliate_no_commission_payment_methods', array()),
+      '#description' => t('You can disable commission for certain Payment methods'),
+      '#options' => $payment_methods,
+    );
   }
-
-  $form['affiliate_no_commission_payment_methods'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Disable commission for these Payment methods'),
-    '#default_value' => variable_get('affiliate_no_commission_payment_methods', array()),
-    '#description' => t('You can disable commission for certain Payment methods'),
-    '#options' => $payment_methods,
-  );
 
   $ip_masks = array(
     'hide' => t("Hide IP addresses from users"),
