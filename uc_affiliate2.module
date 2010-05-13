@@ -401,13 +401,6 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 function _uc_affiliate2_get_product_list() {
   global $user;
 
-  $products = array();
-  $output = '';
-
-  if ($mode == 'csv') {
-    $output = t('Product Name') . ', ' . t('Price') . ', ' . t('Description') . ', ' . t('Image Link') . ', ' . t('Link') . "\n";
-  }
-
   $result = db_query("SELECT node.nid, node.title FROM {uc_products} uc_products
                         INNER JOIN {node} node ON uc_products.nid = node.nid
                       WHERE node.status = 1");
@@ -416,6 +409,8 @@ function _uc_affiliate2_get_product_list() {
     return;
   }
 
+  $products = array();
+  
   while ($node = db_fetch_object($result)) {
     $product_commission = uc_affiliate2_get_product_commission($user, $node->nid);
     if ($product_commission->commission_structure == 0) {
