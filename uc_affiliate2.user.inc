@@ -232,30 +232,31 @@ function _uc_affiliate2_product_form_submit($form, &$form_state) {
       $show_these = array('all'); // we don't need anything else
   }
 
-  if (count($show_these) > 0) {
-    if ($form_state['values']['export_type'] == 'csv') {
-      drupal_set_header("Content-Type: application/csv; charset=\"utf-8\"\n");
-      drupal_set_header('Content-Disposition: attachment; filename="export.csv"');
-
-      if ($show_these[0] == 'all') {
-        print _uc_affiliate2_get_products('csv');
-      }
-      else {
-        print _uc_affiliate2_get_products('csv', $show_these);
-      }
-
-      //module_invoke_all('exit'); - this causes a header warning in the watchlog because the form tries to redirect to itself
-      exit;
-    }
-    else { // html
-      $ids = join('/', $show_these);
-      $path = join('/', array('user', $form_state['values']['uid'], 'affiliate', 'links', 'export', $ids));
-
-      drupal_goto($path);
-    }
-  }
-  else {
+  if (count($show_these) < 1) {
     drupal_set_message(t('You must select at least one product.'));
+    
+    return;
+  }
+  
+  if ($form_state['values']['export_type'] == 'csv') {
+    drupal_set_header("Content-Type: application/csv; charset=\"utf-8\"\n");
+    drupal_set_header('Content-Disposition: attachment; filename="export.csv"');
+
+    if ($show_these[0] == 'all') {
+      print _uc_affiliate2_get_products('csv');
+    }
+    else {
+      print _uc_affiliate2_get_products('csv', $show_these);
+    }
+
+    //module_invoke_all('exit'); - this causes a header warning in the watchlog because the form tries to redirect to itself
+    exit;
+  }
+  else { // html
+    $ids = join('/', $show_these);
+    $path = join('/', array('user', $form_state['values']['uid'], 'affiliate', 'links', 'export', $ids));
+
+    drupal_goto($path);
   }
 }
 

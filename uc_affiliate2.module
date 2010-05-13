@@ -119,8 +119,6 @@ function uc_affiliate2_menu() {
     'type' => MENU_CALLBACK,
   );
 
-
-
   // The path for affiliate links defaults to /affiliate/[uid]
   // however, this can be overridden by adding the following line
   // $conf['uc_affiliate2_path'] = 'my_affiliate_path'
@@ -298,7 +296,7 @@ function _uc_affiliate2_user_access($account, $mode = '') {
  * This function sets $_SESSION['affiliate'] and increments click count
  */
 function uc_affiliate2_init() {
-  module_load_include('inc', 'uc_affiliate2', 'uc_affiliate2.ca');
+  require_once drupal_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.ca.inc';
 
   uc_affiliate2_click();
 }
@@ -330,7 +328,7 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $where = ' AND nid IN ('. $placeholders .')';
   }
 
-  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where", $show);
+  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where ORDER BY title ASC", $show);
   
   if (!$result && !$where) {
     return;
@@ -398,7 +396,7 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 function _uc_affiliate2_get_product_list() {
   global $user;
 
-  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product'");
+  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' ORDER BY title ASC");
 
   if (!$result) {
     return;
@@ -600,7 +598,8 @@ function uc_affiliate2_order($op, $order, $status) {
     if ($affiliate) {
       db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $affiliate, $order->order_id);
     }
-  } else if($op == 'delete') {
+  }
+  else if($op == 'delete') {
     db_query("DELETE FROM {uc_affiliate2_orders} WHERE order_id = %d", $order->order_id);
   }
 
@@ -668,6 +667,7 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
     else {
       $aff = $affiliate_id;
     }
+    
     $affcom[$aff]['total'] = isset($affcom[$aff]['total']) ? $affcom[$aff]['total'] + $price : $price;
     $affcom[$aff]['products'][$product->nid][$product->model] = array(
       'price' => $product->price,
@@ -847,6 +847,7 @@ function uc_affiliate2_time_selection_form_submit($form, &$form_state) {
     $start_date = '0';
     $end_date = '0';
   }
+  
   drupal_goto(arg(0) .'/'. arg(1) .'/'. arg(2) .'/'. arg(3) .'/'. $form_state['values']['period'] .'/'. $start_date .'/'. $end_date);
 }
 
