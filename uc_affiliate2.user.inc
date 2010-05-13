@@ -130,7 +130,7 @@ function uc_affiliate2_links($user) {
   $output = '';
 
   $products = array('all' => t('Show All'));
-  $products += _uc_affiliate2_get_products();
+  $products += _uc_affiliate2_get_product_list();
 
   if (count($products) > 1) {
     $output .= '<b>' . t('Export product feed') . '</b> <br />';

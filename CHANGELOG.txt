@@ -6,18 +6,21 @@ Version 2.5
 -- removed subdomain support (see drupal.org/project/domain for the right way to do this)
 -- the cookie tracking settings are now general, no longer per role
 -- removed the "switch after" setting for cookied roles. It was unused and confusing.
+
 -- functionality for admin's to appy/remove commission from an order.
 -- separate tab to view the commissions on an order (with functionality to edit or remove specific commission)
 -- add optional feature to allow subsequent orders for a member to credit the commissions back to the previous affiliate.
--- separate the code for applying the commissions from the hook_order() function
--- split functionality from *.module to a *.user.inc and *.admin.inc files
 -- add CA support [trigger: commission_applied], [conditions: has_affiliate, check_commission, check_level], [actions: override_commission, send_affiliate_email]
 -- add token support for the affiliate email
 -- add 'level' field to the commission table
--- separate affiliate settings page into 3 tabs for banners, commissions and settings.
--- fixed reporting so that users in different timezone will all see the same result
 -- add an advanced rule based product commissions options for defining commission structures
 -- support fixed commissions as well as percentage
+
+-- separate the code for applying the commissions from the hook_order() function
+-- split functionality from *.module to a *.user.inc and *.admin.inc files
+-- separate affiliate settings page into 3 tabs for banners, commissions and settings.
+
+-- fixed reporting so that users in different timezone will all see the same result
 -- many small fixes
 
 Version 2.5rc1

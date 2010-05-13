@@ -303,7 +303,11 @@ function uc_affiliate2_init() {
   uc_affiliate2_click();
 }
 
-function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
+/**
+ * Get all of the selected products, used in affiliate/links after the form
+ * has been submited.
+ */
+function _uc_affiliate2_get_products($mode, $show = array()) {
   global $user;
 
   if ($mode == 'html') {
@@ -377,10 +381,6 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
         $output .=  $link ."\n";
       break;
 
-      case "form":
-        $products[$product->nid] = $product->title;
-      break;
-
       case "html":
         $image = ($image == 'N/A') ? $GLOBALS['base_url'] .'/misc/watchdog-error.png' : $image;
         $products[$title] = str_replace(array('[LINK]', '[TITLE]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $title, $image, $description, $price), $template);
@@ -390,6 +390,39 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
 
   if ($mode == 'csv') {
     return $output;
+  }
+
+  return $products;
+}
+
+/**
+ * Get a list of all added products, used in the form on affiliate/links
+ */
+function _uc_affiliate2_get_product_list() {
+  global $user;
+
+  $products = array();
+  $output = '';
+
+  if ($mode == 'csv') {
+    $output = t('Product Name') . ', ' . t('Price') . ', ' . t('Description') . ', ' . t('Image Link') . ', ' . t('Link') . "\n";
+  }
+
+  $result = db_query("SELECT node.nid, node.title FROM {uc_products} uc_products
+                        INNER JOIN {node} node ON uc_products.nid = node.nid
+                      WHERE node.status = 1");
+
+  if (!$result) {
+    return;
+  }
+
+  while ($node = db_fetch_object($result)) {
+    $product_commission = uc_affiliate2_get_product_commission($user, $node->nid);
+    if ($product_commission->commission_structure == 0) {
+      continue;
+    }
+    
+    $products[$node->nid] = $node->title;
   }
 
   return $products;
