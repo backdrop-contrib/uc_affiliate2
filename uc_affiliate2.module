@@ -336,23 +336,12 @@ function _uc_affiliate2_get_products($mode = 'form', $show = array()) {
   }
 
   while ($node = db_fetch_object($result)) {
-    $product = node_load($node->nid);
-
     $product_commission = uc_affiliate2_get_product_commission($user, $node->nid);
     if ($product_commission->commission_structure == 0) {
       continue;
     }
-
-    // Grab terms for products, and the manufacturer
-    $terms = array();
-    $manufacturer = variable_get('uc_google_base_csv_default_manufacturer', '');
-    $manufacturer_vid = variable_get('uc_manufacturer_vid', 5);
-    foreach ($product->taxonomy as $term) {
-     $ancestors = taxonomy_get_parents_all($term->tid);
-     foreach ($ancestors as $ancestor) {
-       $terms[] = $ancestor->name;
-     }
-    }
+    
+    $product = node_load($node->nid);
 
     $product->path = (!$product->path) ? 'node/'. $product->nid : $product->path;
     $link = $GLOBALS['base_url'] .'/'. variable_get('uc_affiliate2_path', 'affiliate') .'/'. $user->uid .'/'. $product->path;
