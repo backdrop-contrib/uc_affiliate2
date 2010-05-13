@@ -328,7 +328,14 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $where = ' AND nid IN ('. $placeholders .')';
   }
 
-  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where ORDER BY title ASC", $show);
+  $sql = "SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where ORDER BY title ASC";
+  
+  if ($mode == 'csv') {
+    $result = db_query($sql, $show);
+  }
+  else { // we need the paginator for the html view
+    $result = pager_query($sql, 30, 0, null, $show);  
+  }
   
   if (!$result && !$where) {
     return;

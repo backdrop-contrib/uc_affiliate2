@@ -163,6 +163,7 @@ function uc_affiliate2_links_export() {
   }
 
   $output .= _uc_affiliate2_display_products($products);
+  $output .= theme('pager', NULL, 30, 0);
 
   return $output;
 }
