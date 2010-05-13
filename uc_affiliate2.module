@@ -214,17 +214,18 @@ function uc_affiliate2_menu() {
     'page arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
-    'access arguments' => array(1, 'hierarchy'),
+    'access arguments' => array(1, 'downline'),
     'file' => 'uc_affiliate2.user.inc',
     'weight' => 5
   );
+  
   $items['user/%user/affiliate/upline'] = array(
     'title' => 'Upline',
     'page callback' => 'uc_affiliate2_upline',
     'page arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => '_uc_affiliate2_user_access',
-    'access arguments' => array(1, 'hierarchy'),
+    'access arguments' => array(1, 'upline'),
     'file' => 'uc_affiliate2.user.inc',
     'weight' => 6
   );
@@ -274,13 +275,20 @@ function _uc_affiliate2_user_access($account, $mode = '') {
 
   $access = (($user->uid == $account->uid) && user_access('act as affiliate', $account)) || (user_access('administer users') && user_access('act as affiliate', $account));
 
-  if ($mode == 'hierarchy') {
-    //show upline and downline if affiliate hierarchy depth is greater than 1
+  // if we need upline, and it's disabled, don't display it ;)
+  if ($mode == 'upline' && variable_get('affiliate_enable_upline', 0) == 0) {
+    return FALSE;
+  }
+
+  if ($mode == 'downline' || $mode == 'upline') {  
+    // Show upline and downline if affiliate hierarchy depth is greater than 1
     if (variable_get('affiliate_hierarchy_depth', 5) > 1 && $access) {
       return TRUE;
     }
+    
     return FALSE;
   }
+  
   return $access;
 }
 

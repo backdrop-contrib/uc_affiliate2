@@ -1,7 +1,8 @@
 CHANGELOG for the uc_affiliate2 module
 
 Version 2.5
-**************
+*************
+-- disabled the "Upline" page by default (you can enable it in Settings if you want)
 -- removed subdomain support (see drupal.org/project/domain for the right way to do this)
 -- the cookie tracking settings are now general, no longer per role
 -- removed the "switch after" setting for cookied roles. It was unused and confusing.

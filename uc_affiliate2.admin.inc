@@ -288,7 +288,14 @@ function uc_affiliate2_commission_settings_validate($form, &$form_state) {
 /**
  * Define the affiliate admin settings form
  */
-function uc_affiliate2_admin_settings() {  
+function uc_affiliate2_admin_settings() {
+  $form['affiliate_enable_upline'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable the "Upline" page for affiliates.'),
+    '#description' => t('This page allows the affiliate to see the affiliates above him (if any) in a multilevel setup.'),
+    '#default_value' => variable_get('affiliate_enable_upline', 0),
+  );
+    
   foreach (uc_order_status_list('general') as $status) {
     $statuses[$status['id']] = $status['title'];
   }
@@ -377,7 +384,7 @@ function uc_affiliate2_admin_settings_validate($form, &$form_state) {
   if (!empty($url) && ($url != check_url($url) || strpos($url, '://') !== FALSE)) {
     form_set_error('affiliate_invalid_redirect', t('Please enter a valid Drupal path, without the http and domain parts.'));
   }
-  
+
   if (!strtotime($form_state['values']['affiliate_cookie_lifetime'])) {
     form_set_error('affiliate_cookie_lifetime', t('Invalid strtotime syntax.'));
   }
