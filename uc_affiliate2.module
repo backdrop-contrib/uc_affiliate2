@@ -327,14 +327,11 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $placeholders = str_repeat('%d, ', count($show));
     $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
 
-    $where = ' AND node.nid IN ('. $placeholders .')';
+    $where = ' AND nid IN ('. $placeholders .')';
   }
 
-  $result = db_query("SELECT node.nid FROM {uc_products} uc_products
-                        INNER JOIN {node} node ON uc_products.nid = node.nid
-                      WHERE node.status = 1
-                              $where", $show);
-
+  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where", $show);
+  
   if (!$result && !$where) {
     return;
   }
@@ -401,9 +398,7 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 function _uc_affiliate2_get_product_list() {
   global $user;
 
-  $result = db_query("SELECT node.nid, node.title FROM {uc_products} uc_products
-                        INNER JOIN {node} node ON uc_products.nid = node.nid
-                      WHERE node.status = 1");
+  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product'");
 
   if (!$result) {
     return;

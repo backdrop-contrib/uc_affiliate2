@@ -21,6 +21,7 @@ Version 2.5
 -- separate affiliate settings page into 3 tabs for banners, commissions and settings.
 
 -- fixed reporting so that users in different timezone will all see the same result
+-- optimized the affiliate/links page
 -- many small fixes
 
 Version 2.5rc1
