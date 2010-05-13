@@ -95,7 +95,7 @@ function uc_affiliate2_admin_users($uid) {
   // used to determine whether to show the paid form.
   $month_timestamp = arg(4);
 
-  $user = user_load(array('uid' => $uid));
+  $account = user_load(array('uid' => $uid));
 
   // setup the table
   $header = array(
@@ -119,7 +119,7 @@ function uc_affiliate2_admin_users($uid) {
   while ($rec = db_fetch_array($result)) {
     $mondate = date(UC_AFFILIATE2_REPORT_DATE_FORMAT, $rec['created']);
     $total_sales[$mondate] = isset($total_sales[$mondate]) ? $total_sales[$mondate]+$rec['order_total'] : $rec['order_total'];
-    $total_commissions[$mondate] = isset($total_commissions[$mondate]) ? $total_commissions[$mondate]+$rec['commission'] : $rec['commission'];
+    $total_commissions[$mondate] = isset($total_commissions[$mondate]) ? $total_commissions[$mondate] + $rec['commission'] : $rec['commission'];
   }
 
   foreach ($total_sales as $date => $sales) {
@@ -145,7 +145,7 @@ function uc_affiliate2_admin_users($uid) {
     );
   }
 
-  $output = "<p>". t("Displaying affiliate sales and commissions for ") . theme('username', $user) .".";
+  $output = "<p>". t("Displaying affiliate sales and commissions for ") . theme('username', $account) .".";
 
   $output .= theme('table', $header, $rows);
 
@@ -199,8 +199,8 @@ function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
     db_query('UPDATE {uc_affiliate2_paid} SET amount=%f WHERE aid=%d AND date=%d', $amount, $uid, $date);
   }
 
-  $user = user_load(array('uid' => $uid));
-  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amount), '!user' => theme('username', $user), '@date' => format_date($date, 'custom', 'M Y'))));
+  $account = user_load(array('uid' => $uid));
+  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amount), '!user' => theme('username', $account), '@date' => format_date($date, 'custom', 'M Y'))));
 
   return 'admin/store/affiliate/'. $uid;
 }
@@ -630,9 +630,9 @@ function uc_affiliate2_product_commission_form($form_state, $node) {
     if (!empty($product_commission->rule_match)) {
       switch($product_commission->rule) {
         case 'user':
-          $user = user_load($product_commission->rule_match);
+          $account = user_load($product_commission->rule_match);
           $form['product_commissions'][$pcid]['match'] = array(
-            '#value' => theme('username', $user)
+            '#value' => theme('username', $account)
           );
           break;
         case 'role':

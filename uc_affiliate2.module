@@ -1080,13 +1080,13 @@ function uc_affiliate2_token_values($type, $object = NULL) {
       }
       break;
     case 'affiliate':
-      $user = user_load($affiliate->aid);
-      $values['affiliate-uid'] = $user->uid;
-      $values['affiliate-name'] = $user->name;
-      $values['affiliate-email'] = $user->mail;
+      $account = user_load($affiliate->aid);
+      $values['affiliate-uid'] = $account->uid;
+      $values['affiliate-name'] = $account->name;
+      $values['affiliate-email'] = $account->mail;
       $values['affiliate-commission'] = uc_price($affiliate->commission, $context);
       $values['affiliate-level'] = $affiliate->level;
-      $tokens['affiliate-commissions-url'] = url('user/'.$user->uid.'/affiliate/commissions', array('absolute' => TRUE));
+      $tokens['affiliate-commissions-url'] = url('user/'.$account->uid.'/affiliate/commissions', array('absolute' => TRUE));
       break;
   }
 

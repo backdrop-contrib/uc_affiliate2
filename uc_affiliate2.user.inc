@@ -11,7 +11,7 @@
 /*
  * Display dashboard for affiliate
  */
-function uc_affiliate2_dashboard($user) {
+function uc_affiliate2_dashboard($account) {
   $commissions = array('today' => 0, 'week' => 0, 'year' => 0);
   $clicks = array('today' => 0, 'week' => 0, 'year' => 0);
 
@@ -19,7 +19,7 @@ function uc_affiliate2_dashboard($user) {
   $dates_today = _uc_affiliate2_predefined_range(7);
 
   $sql = 'SELECT COUNT(ac.commission_id) as cnt FROM {uc_affiliate2_commission} ac INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id WHERE aid = %d AND uco.created BETWEEN %d AND %d';
-  $result = db_query($sql, $user->uid, $dates_today['start'], $dates_today['end']);
+  $result = db_query($sql, $account->uid, $dates_today['start'], $dates_today['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['today'] += $count['cnt'];
@@ -32,7 +32,7 @@ function uc_affiliate2_dashboard($user) {
             FROM {uc_affiliate2_commission} ac
               INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
                 WHERE aid = %d AND uco.created BETWEEN %d AND %d';
-  $result = db_query($sql, $user->uid, $dates_week['start'], $dates_week['end']);
+  $result = db_query($sql, $account->uid, $dates_week['start'], $dates_week['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['week'] += $count['cnt'];
@@ -45,7 +45,7 @@ function uc_affiliate2_dashboard($user) {
             FROM {uc_affiliate2_commission} ac
               INNER JOIN {uc_orders} uco on ac.order_id = uco.order_id
                 WHERE aid = %d AND uco.created BETWEEN %d AND %d';
-  $result = db_query($sql, $user->uid, $dates_year['start'], $dates_year['end']);
+  $result = db_query($sql, $account->uid, $dates_year['start'], $dates_year['end']);
 
   while ($count = db_fetch_array($result)) {
     $commissions['year'] += $count['cnt'];
@@ -55,7 +55,7 @@ function uc_affiliate2_dashboard($user) {
   $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
             WHERE aid = %d AND time BETWEEN %d AND %d
               GROUP BY aid";
-  $result = db_query($sql, $user->uid, $dates_today['start'], $dates_today['end']);
+  $result = db_query($sql, $account->uid, $dates_today['start'], $dates_today['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['today'] += $count['clicks'];
@@ -65,7 +65,7 @@ function uc_affiliate2_dashboard($user) {
   $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
             WHERE aid = %d AND time BETWEEN %d AND %d
               GROUP BY aid";
-  $result = db_query($sql, $user->uid, $dates_week['start'], $dates_week['end']);
+  $result = db_query($sql, $account->uid, $dates_week['start'], $dates_week['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['week'] += $count['clicks'];
@@ -75,7 +75,7 @@ function uc_affiliate2_dashboard($user) {
   $sql = "SELECT count(click_id) as clicks from {uc_affiliate2_clicks}
             WHERE aid = %d AND time BETWEEN %d AND %d
               GROUP BY aid";
-  $result = db_query($sql, $user->uid, $dates_year['start'], $dates_year['end']);
+  $result = db_query($sql, $account->uid, $dates_year['start'], $dates_year['end']);
 
   while ($count = db_fetch_array($result)) {
     $clicks['year'] += $count['clicks'];
@@ -91,7 +91,7 @@ function uc_affiliate2_dashboard($user) {
               t('Sales last 7 Days:') . " $commissions[week] <br />" .
               t('Last 365 Days:') . " $commissions[year] <br /><br />";
 
-  $commissions_url = join('/', array('user', $user->uid, 'affiliate', 'commissions'));
+  $commissions_url = join('/', array('user', $account->uid, 'affiliate', 'commissions'));
   $output .= l(t('Click here for more reports.'), $commissions_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
@@ -102,7 +102,7 @@ function uc_affiliate2_dashboard($user) {
              t("Last 7 Days: ") . " $clicks[week] <br />" .
              t("Last 365 Days: ") . " $clicks[year] <br /><br />";
 
-  $clicks_url = join('/', array('user', $user->uid, 'affiliate', 'clicks'));
+  $clicks_url = join('/', array('user', $account->uid, 'affiliate', 'clicks'));
   $output .= l(t('Click here for customized click reporting.'), $clicks_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
@@ -110,15 +110,15 @@ function uc_affiliate2_dashboard($user) {
   $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2>';
   $output .= t('You can append a destination page to the end of the affiliate links to redirect to a specific page,
               as well as track clicks to it, i.e.
-              example.com/!path/!uid/node/1', array('!uid' => $user->uid, '!path' => variable_get('uc_affiliate2_path', 'affiliate'))) . '<br /> <br />';
+              example.com/!path/!uid/node/1', array('!uid' => $account->uid, '!path' => variable_get('uc_affiliate2_path', 'affiliate'))) . '<br /> <br />';
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, variable_get('uc_affiliate2_path', 'affiliate'). '/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $text_link = l($text_link, variable_get('uc_affiliate2_path', 'affiliate'). '/'. $account->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
   $output .= '<b>' . t('Text Link:') . '</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
 
   $output .= _uc_affiliate2_display_banners();
 
-  $links_url = join('/', array('user', $user->uid, 'affiliate', 'links'));
+  $links_url = join('/', array('user', $account->uid, 'affiliate', 'links'));
   $output .= '<br />' . l(t('Click here for product links.'), $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
 
   $output .= '</div>';
@@ -126,7 +126,7 @@ function uc_affiliate2_dashboard($user) {
   return $output;
 }
 
-function uc_affiliate2_links($user) {
+function uc_affiliate2_links($account) {
   $output = '';
 
   $products = array('all' => t('Show All'));
@@ -137,7 +137,7 @@ function uc_affiliate2_links($user) {
     $output .= t('Choose the products which you want included in your feed.') . '<br />';
     $output .= t('All product links will have your affiliate id included.') . '<br /><br /> ';
 
-    $output .= drupal_get_form('_uc_affiliate2_product_form', $products, $user);
+    $output .= drupal_get_form('_uc_affiliate2_product_form', $products, $account);
   }
   else {
     $output .= t('No products found.');
@@ -192,10 +192,10 @@ function _uc_affiliate2_display_products($products) {
   return theme('table', $header, $rows);;
 }
 
-function _uc_affiliate2_product_form(&$form_state, $products, $user) {
+function _uc_affiliate2_product_form(&$form_state, $products, $account) {
   drupal_add_js(drupal_get_path('module', 'uc_affiliate2') .'/uc_affiliate2.js');
 
-  $form['uid'] = array('#type' => 'value', '#value' => $user->uid);
+  $form['uid'] = array('#type' => 'value', '#value' => $account->uid);
 
   $form['products'] = array(
     '#type' => 'checkboxes',
@@ -291,7 +291,7 @@ function _uc_affiliate2_display_banners() {
 /*
  * Display affiliate commission records
  */
-function uc_affiliate2_commissions($user) {
+function uc_affiliate2_commissions($account) {
   drupal_set_title(t('Commissions'));
 
   // setup the table
@@ -312,7 +312,7 @@ function uc_affiliate2_commissions($user) {
               LEFT JOIN {users} u ON uco.uid = u.uid
                 WHERE aid = %d AND uco.created BETWEEN %d AND %d';
   $sql .= tablesort_sql($header);
-  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
+  $result = db_query($sql, $account->uid, $dates['start'], $dates['end']);
 
   $total_sales = 0;
   $total_commission = 0;
@@ -351,13 +351,13 @@ function uc_affiliate2_commissions($user) {
 /*
  * Display affiliate clicks
  */
-function uc_affiliate2_clicks($user) {
+function uc_affiliate2_clicks($account) {
   drupal_set_title(t('Unique Click count'));
 
   // Create sql to display level of affiliate specified
   $dates = _uc_affiliate2_predefined_range(arg(4));
   $sql = "SELECT time FROM {uc_affiliate2_clicks} WHERE aid = %d AND time BETWEEN %d AND %d";
-  $result = db_query($sql, $user->uid, $dates['start'], $dates['end']);
+  $result = db_query($sql, $account->uid, $dates['start'], $dates['end']);
 
   $clicks = array();
   while ($click_day = db_fetch_array($result)) {
@@ -400,7 +400,7 @@ function uc_affiliate2_clicks($user) {
   $total_clicks = 0;
   foreach($clicks as $click_date => $clicks_count) {
     $click_date_end = $click_date + 86399;
-    $link = l(date('Y/m/d', $click_date), 'user/' . $user->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
+    $link = l(date('Y/m/d', $click_date), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
     $rows[] = array($link, $clicks_count);
     $total_clicks += $clicks_count;
   }
@@ -543,7 +543,7 @@ function _uc_affiliate2_mask_ip($ip) {
 /*
  * Display affiliate orders by status
  */
-function uc_affiliate2_orders($user) {
+function uc_affiliate2_orders($account) {
   drupal_set_title(t('All Orders'));
 
   // setup the table
@@ -561,7 +561,7 @@ function uc_affiliate2_orders($user) {
               LEFT JOIN {users} u ON uco.uid = u.uid
                 WHERE ao.aid = %d';
   $sql .= tablesort_sql($header);
-  $result = db_query($sql, $user->uid);
+  $result = db_query($sql, $account->uid);
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
@@ -597,7 +597,7 @@ function uc_affiliate2_orders($user) {
 /*
  * Display affiliate's downline
  */
-function uc_affiliate2_downline($user, $level = 1) {
+function uc_affiliate2_downline($account, $level = 1) {
   drupal_set_title(t('Downline'));
 
   //make sure user doesn't try to manipulate depth
@@ -624,7 +624,7 @@ function uc_affiliate2_downline($user, $level = 1) {
     $sql .= "INNER JOIN {users} u$next ON au$i.aid = u$next.uid ";
   }
   $sql .= "LEFT OUTER JOIN (SELECT au.aid, COUNT(au.uid) as user_count FROM {uc_affiliate2_users} au GROUP BY au.aid) uc on uc.aid = u1.uid ";
-  $sql .= "WHERE u$next.uid = ". $user->uid;
+  $sql .= "WHERE u$next.uid = ". $account->uid;
 
   $sql .= tablesort_sql($header);
   $limit = 25;
@@ -648,7 +648,7 @@ function uc_affiliate2_downline($user, $level = 1) {
   $output = '<ul class="tabs secondary">';
   for ($i=1; $i<=variable_get('affiliate_hierarchy_depth', 5); $i++) {
     $output .= ($i == $level ? '<li class="active">' : '<li>');
-    $output .= l(t("Level") ." ". $i, 'user/'. $user->uid .'/affiliate/downline/'. $i) ."</li>";
+    $output .= l(t("Level") ." ". $i, 'user/'. $account->uid .'/affiliate/downline/'. $i) ."</li>";
   }
   $output .= "</ul>";
 
@@ -662,7 +662,7 @@ function uc_affiliate2_downline($user, $level = 1) {
 /*
  * Display affiliate's upline
  */
-function uc_affiliate2_upline($user) {
+function uc_affiliate2_upline($account) {
   drupal_set_title(t('Upline'));
 
   // setup the table
@@ -677,7 +677,7 @@ function uc_affiliate2_upline($user) {
   // Create sql to display user's upline
   $level = variable_get('affiliate_hierarchy_depth', 5);
   $rows = array();
-  $next_uid = $user->uid;
+  $next_uid = $account->uid;
   for ($i=1; $i<=$level; $i++) {
     $sql = "SELECT u.uid, u.name, u.status, u.created, u.access, uc.user_count, ". $i ." AS level ";
     $sql .= "FROM {users} u INNER JOIN {uc_affiliate2_users} au ON au.aid = u.uid ";
@@ -693,7 +693,7 @@ function uc_affiliate2_upline($user) {
         $affiliate->level,
         theme('username', $affiliate),
         format_interval(time() - $affiliate->created),
-        $affiliate->access ? t('%time ago', array('%time' => format_interval(time() - $user->access))) : t('never'),
+        $affiliate->access ? t('%time ago', array('%time' => format_interval(time() - $account->access))) : t('never'),
         $affiliate->user_count ? $affiliate->user_count : 0
       );
     }
