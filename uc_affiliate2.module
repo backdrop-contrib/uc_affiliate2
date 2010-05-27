@@ -314,6 +314,7 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 
   // Get active products
   $where = '';
+  $values = array();
   $products = array();
   $output = '';
 
@@ -321,20 +322,22 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $output = t('Product Name') . ', ' . t('Price') . ', ' . t('Description') . ', ' . t('Image Link') . ', ' . t('Link') . "\n";
   }
 
-  if (count($show) > 0) {// are we filtering the query?
-    $placeholders = str_repeat('%d, ', count($show));
-    $placeholders = substr($placeholders, 0, strlen($placeholders) -2); // remove the final ', '
+  $product_types = uc_product_types();
+  $where .= ' AND type IN (' . db_placeholders($product_types, 'varchar') . ')';
+  $values = array_merge($values, $product_types);
 
-    $where = ' AND nid IN ('. $placeholders .')';
+  if (count($show) > 0) {// are we filtering the query?
+    $where .= ' AND nid IN (' . db_placeholders($show, 'int') . ')';
+    $values = array_merge($values, $show);
   }
 
-  $sql = "SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' $where ORDER BY title ASC";
+  $sql = "SELECT nid, title FROM {node} WHERE status = 1 $where ORDER BY title ASC";
   
   if ($mode == 'csv') {
-    $result = db_query($sql, $show);
+    $result = db_query($sql, $values);
   }
   else { // we need the paginator for the html view
-    $result = pager_query($sql, 30, 0, null, $show);  
+    $result = pager_query($sql, 30, 0, null, $values);  
   }
   
   if (!$result && !$where) {
@@ -403,7 +406,9 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 function _uc_affiliate2_get_product_list() {
   global $user;
 
-  $result = db_query("SELECT nid, title FROM {node} WHERE status = 1 AND type = 'product' ORDER BY title ASC");
+  $product_types = uc_product_types();
+
+  $result = db_query('SELECT nid, title FROM {node} WHERE status = 1 AND type IN (' . db_placeholders($product_types, 'varchar') . ') ORDER BY title ASC', $product_types);
 
   if (!$result) {
     return;
