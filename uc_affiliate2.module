@@ -476,7 +476,7 @@ function uc_affiliate2_user($op, &$edit, &$account, $category = NULL) {
       }
       break;
     case 'form':
-      if (user_access('adjust user commissions')) {
+      if (user_access('adjust user commissions') && $category == 'account') {
         $form['commission_settings'] = array(
           '#type' => 'fieldset',
           '#title' => t('Affiliate Commission Settings'),
