@@ -737,6 +737,8 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
  *   Affiliate ID to remove commissions from (default is all affiliates on the order).
  */
 function uc_affiliate2_remove_commission($order, $affiliate_id = NULL) {
+  global $user;
+  
   $result = db_query("SELECT aid FROM {uc_affiliate2_commission} WHERE order_id = %d", $order->order_id);
   $affiliates = array();
 
@@ -765,7 +767,6 @@ function uc_affiliate2_remove_commission($order, $affiliate_id = NULL) {
  *   A commission object.
  */
 function uc_affiliate2_commission_save($comm) {
-  global $user;
   // Update an existing row.
   drupal_alter('affiliate2_commission', $comm);
 
@@ -776,7 +777,7 @@ function uc_affiliate2_commission_save($comm) {
   else {
     drupal_write_record('uc_affiliate2_commission', $comm);
   }
-  uc_order_comment_save($comm->order_id, $user->uid, $comm->commission_notes);
+  uc_order_comment_save($comm->order_id, 0, $comm->commission_notes);
 
   return $comm->commission_id;
 }

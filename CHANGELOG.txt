@@ -4,6 +4,7 @@ Version 2.6
 ***********
 -- #801304 by darktygur: "Only products with a node type of 'product' ever show up when an affiliate tries to generate links"
 -- #816422 by tinker: "Affiliate form appears in all categories of user profile information"
+-- Refined the way we enter order comments (on commission add/remove)
 
 Version 2.5
 *************
