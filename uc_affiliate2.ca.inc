@@ -227,7 +227,7 @@ function uc_affiliate2_condition_affiliate_level_form($form_state, $settings = a
     '#type' => 'textfield',
     '#title' => t('Affiliate level value'),
     '#description' => t('Specify a value to compare the affiliate level against.'),
-    '#default_value' => $settings['affiliate_level_value'],
+    '#default_value' => isset($settings['affiliate_level_value']) ? $settings['affiliate_level_value'] : NULL,
     '#size' => 16,
   );
 
@@ -276,7 +276,7 @@ function uc_affiliate2_condition_commission_amount_form($form_state, $settings =
     '#type' => 'textfield',
     '#title' => t('Affiliate commission value'),
     '#description' => t('Specify a value to compare the affiliate commission amount against.'),
-    '#default_value' => $settings['affiliate_commission_value'],
+    '#default_value' => isset($settings['affiliate_commission_value']) ? $settings['affiliate_commission_value'] : NULL,
     '#size' => 16,
   );
 
@@ -313,7 +313,7 @@ function uc_affiliate2_set_commission_form($form_state, $settings = array()) {
     '#type' => 'textfield',
     '#title' => t('Affiliate Commission Percent'),
     '#description' => t('Enter a value to override the default commission percentage.'),
-    '#default_value' => $settings['affiliate_commission_pct']
+    '#default_value' => isset($settings['affiliate_commission_pct']) ? $settings['affiliate_commission_pct'] : NULL,
   );
 
   return $form;
@@ -363,5 +363,14 @@ function uc_affiliate2_action_commission_email_form($form_state, $settings = arr
   // ca_build_email_form() function seems to be incorrectly part of uc_roles so
   // we add this hack to include the uc_roles.ca.inc here.
   module_load_include('inc', 'uc_roles', 'uc_roles.ca');
+  
+  $settings += array(
+    'from' => uc_store_email_from(),
+    'addresses' => '[affiliate-email]',
+    'subject' => uc_get_message('uc_affiliate2_commission_subject'),
+    'message' => uc_get_message('uc_affiliate2_commission_message'),
+    'format' => 1,
+  );
+  
   return ca_build_email_form($form_state, $settings, array('global', 'order', 'user', 'affiliate'));
 }
