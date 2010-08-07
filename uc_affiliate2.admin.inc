@@ -441,12 +441,17 @@ function uc_affiliate2_monthly_report() {
     $total_sales[$aid] = isset($total_sales[$aid]) ? $total_sales[$aid] + $rec['order_total'] : $rec['order_total'];
     $total_commissions[$aid] = isset($total_commissions[$aid]) ? $total_commissions[$aid] + $rec['commission'] : $rec['commission'];
   }
-
-  $user_results = db_query('SELECT name, uid FROM {users}');
-  $users = array();
-
-  while ($user = db_fetch_array($user_results)) {
-    $users[$user['uid']] = $user['name'];
+  
+  // lookup the users
+  if (count($total_sales)) {
+    $uids = array_keys($total_sales);
+    $placeholders = implode(', ', array_fill(0, count($uids), "%d"));
+    $user_results = db_query("SELECT name, uid FROM {users} WHERE uid IN ($placeholders)", $uids);
+    $users = array();
+  
+    while ($user = db_fetch_array($user_results)) {
+      $users[$user['uid']] = $user['name'];
+    }
   }
 
   foreach ($total_sales as $uid => $sales) {
@@ -462,7 +467,7 @@ function uc_affiliate2_monthly_report() {
     }
 
     $rows[] = array(
-      $users[$uid],
+      l($users[$uid], 'user/' . $uid),
       uc_currency_format($sales),
       uc_currency_format($total_commissions[$uid]),
       $paid
