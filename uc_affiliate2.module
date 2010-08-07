@@ -462,6 +462,25 @@ function uc_affiliate2_user($op, &$edit, &$account, $category = NULL) {
         watchdog('user', $message);
       }
       break;
+    case 'delete':
+      // This account is being deleted. Remove all related affiliate data
+      $parent = db_result(db_query("SELECT aid FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid));
+      
+      /**
+       * If the affiliate has a parent we need to assign his children to his parent
+       */
+      if ($parent) {
+        db_query("DELETE FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid);
+        db_query("UPDATE {uc_affiliate2_users} SET aid = %d WHERE aid = %d", $parent, $account->uid);
+      } else {
+        db_query("DELETE FROM {uc_affiliate2_users} WHERE aid = %d OR uid = %d", $account->uid, $account->uid);  
+      }
+      
+      db_query("DELETE FROM {uc_affiliate2_orders} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_commission} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_paid} WHERE aid = %d", $account->uid);
+      break;
     case 'view':
       if (user_access('act as affiliate', $account) && $account->uid == $user->uid && $account->uid > 1) {
         $account->content['affiliate'] = array(

@@ -7,6 +7,7 @@ Version 2.6
 -- #791966 by darktygur & bojanz: "Set a default affiliate link type"
 -- Fixed the exclusion of products (by setting the commission to "0")
 -- #824066 by bojanz: "Add link to Customer Page in Reports page"
+-- #829276 by bojanz: Non-Existant Users Still Appear (Incorrectly) in Affiliate Reports
 
 Version 2.5
 *************
