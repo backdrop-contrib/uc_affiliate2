@@ -445,8 +445,7 @@ function uc_affiliate2_monthly_report() {
   // lookup the users
   if (count($total_sales)) {
     $uids = array_keys($total_sales);
-    $placeholders = implode(', ', array_fill(0, count($uids), "%d"));
-    $user_results = db_query("SELECT name, uid FROM {users} WHERE uid IN ($placeholders)", $uids);
+    $user_results = db_query('SELECT name, uid FROM {users} WHERE uid IN (' . db_placeholders($uids, 'int') . ')', $uids);
     $users = array();
   
     while ($user = db_fetch_array($user_results)) {
