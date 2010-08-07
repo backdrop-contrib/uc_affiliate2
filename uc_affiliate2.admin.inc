@@ -313,6 +313,16 @@ function uc_affiliate2_admin_settings() {
     '#default_value' => variable_get('affiliate_invalid_redirect', '')
   );
 
+  $form['affiliate_default_link_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Default affiliate link type'),
+    '#options' => array(
+      'path' => t('Use a special path (!example)', array('!example' => 'http://example.com/<strong>' . check_plain(variable_get('uc_affiliate2_path', 'affiliate')) . '/123</strong>')),
+      'query' => t('Use a query argument (!example)', array('!example' => 'http://example.com/<strong>?a=123</strong>')),
+    ),
+    '#default_value' => variable_get('affiliate_default_link_type', 'path'),
+  );
+
   // Only display this setting if Ubercart Payment is enabled. This prevents a WSOD.
   if (function_exists('_payment_method_list')) {
     foreach (_payment_method_list() as $method) {

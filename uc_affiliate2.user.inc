@@ -84,7 +84,6 @@ function uc_affiliate2_dashboard($account) {
   drupal_set_title(t('Affiliate Center'));
 
   $output = '';
-
   $output .= '<div id="affiliate-sales-header"><h2>' . t('Commission History') . '</h2> <br />';
 
   $output .=  t('Sales Today:') . " $commissions[today] <br />" .
@@ -108,18 +107,26 @@ function uc_affiliate2_dashboard($account) {
   $output .= '</div>';
 
   $output .= '<br /><div id="affiliate-links-header"><h2>' . t('Affiliate Links') . '</h2>';
-  $output .= t('You can append a destination page to the end of the affiliate links to redirect to a specific page,
-              as well as track clicks to it, i.e.
-              example.com/!path/!uid/node/1', array('!uid' => $account->uid, '!path' => variable_get('uc_affiliate2_path', 'affiliate'))) . '<br /> <br />';
+  switch (variable_get('affiliate_default_link_type', 'path')) {
+    case 'path':
+      $output .= t('You can append a destination page to the end of the affiliate links to redirect to a specific page,
+                  as well as track clicks to it, i.e.
+                  @example', array('@example' => _uc_affiliate2_url('node/1', $account, array('alias' => TRUE, 'type' => 'path'))));
+      break;
+    case 'query':
+      $output .= t('You can link to any page on this site by adding your query argument (?a=@uid) to the end of the url, i.e. @example', array('@uid' => $account->uid, '@example' => _uc_affiliate2_url('node/1', $account, array('alias' => TRUE, 'type' => 'query'))));
+      break;
+  }
 
   $text_link = variable_get('affiliate_text_link_template', '');
-  $text_link = l($text_link, variable_get('uc_affiliate2_path', 'affiliate'). '/'. $account->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
-  $output .= '<b>' . t('Text Link:') . '</b> <br /> <textarea cols="45">'. $text_link .'</textarea>';
+  $text_link = _uc_affiliate2_l($text_link, '<front>', $account, array('html' => TRUE));
+  $text_link = array('#type' => 'textarea', '#title' => t('Text Link'), '#value' => $text_link);
+  $output .= drupal_render($text_link);
 
   $output .= _uc_affiliate2_display_banners();
 
   $links_url = join('/', array('user', $account->uid, 'affiliate', 'links'));
-  $output .= '<br />' . l(t('Click here for product links.'), $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+  $output .= '<p>' . l(t('Click here for product links.'), $links_url, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE)) . '</p>';
 
   $output .= '</div>';
 
@@ -278,7 +285,7 @@ function _uc_affiliate2_display_banners() {
 
   foreach ($banners as $banner) {
     $banner = '<'. $banner;
-    $banner_link = l($banner, variable_get('uc_affiliate2_path', 'affiliate') .'/'. $user->uid, array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE, 'html' => TRUE));
+    $banner_link = _uc_affiliate2_l($banner, '<front>', $user, array('html' => TRUE));
 
     $line = array();
     $line[] = $banner;

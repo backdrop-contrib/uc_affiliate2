@@ -353,7 +353,7 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $product = node_load($node->nid);
 
     $product->path = (!$product->path) ? 'node/'. $product->nid : $product->path;
-    $link = $GLOBALS['base_url'] .'/'. variable_get('uc_affiliate2_path', 'affiliate') .'/'. $user->uid .'/'. $product->path;
+    $link = _uc_affiliate2_url($product->path, $user, array('alias' => TRUE));
 
     if (empty($product->field_image_cache[0]['filepath'])) {
       $image = 'N/A';
@@ -970,6 +970,83 @@ function _uc_affiliate2_get_upline_ids($aff) {
   else {
     return array();
   }
+}
+
+/**
+ * Alter the path and options before they are passed to the l() or url()
+ * function so that an affiliate link is created.
+ *
+ * This function is used by _uc_affiliate2_url() and
+ * _uc_affiliate2_l).
+ */
+function _uc_affiliate2_link_alter(&$path, &$options, $user) {
+  if (empty($options['type'])) {
+    $type = variable_get('affiliate_default_link_type', 'path');
+  }
+  else {
+    $type = $options['type'];
+  }
+
+  // Affiliate links are always absolute.
+  $options['absolute'] = TRUE;
+
+  switch ($type) {
+    case 'path':
+      if ($path == '<front>' || !$path) {
+        $path = '';
+      }
+      else {
+        // Make the path an alias if it isn't already.
+        if (empty($options['alias'])) {
+          $path = drupal_get_path_alias($path, isset($options['language']) ? $options['language']->language : '');
+        }
+        // The ltrim() call is just in case the caller could've tossed in a slash.
+        $path = '/' . ltrim($path, '/');
+      }
+      $path = variable_get('uc_affiliate2_path', 'affiliate') . '/' . $user->uid . $path;
+      // This new path definitely isn't an alias.
+      $options['alias'] = FALSE;
+      break;
+    case 'query':
+      if (isset($options['query']) && !is_array($options['query'])) {
+        if (strlen($options['query'])) {
+          $options['query'] .= '&';
+        }
+        $options['query'] .= "a=" . $user->uid;
+      }
+      else {
+        $options['query']['a'] = $user->uid;
+      }
+      break;
+  }
+}
+
+/**
+ * Generate an affiliate url.
+ *
+ * This can replace url() function for generating affiliate urls. All the
+ * options supported by url() are supported here.
+ *
+ * To use an affiliate link type other than the default, you can set a
+ * 'type' option to either 'path' or 'query'.
+ */
+function _uc_affiliate2_url($path, $user, $options = array()) {
+  _uc_affiliate2_link_alter($path, $options, $user);
+  return url($path, $options);
+}
+
+/**
+ * Generate an affiliate link.
+ *
+ * This can replace l() function for generating affiliate links. All the
+ * options supported by l() are supported here.
+ *
+ * To use an affiliate link type other than the default, you can set a
+ * 'type' option to either 'path' or 'query'.
+ */
+function _uc_affiliate2_l($text, $path, $user, $options = array()) {
+  _uc_affiliate2_link_alter($path, $options, $user);
+  return l($text, $path, $options);
 }
 
 function _uc_affiliate2_get_domain() {
