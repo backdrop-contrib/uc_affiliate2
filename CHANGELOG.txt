@@ -4,7 +4,8 @@ Version 2.6
 -- #816422 by tinker: "Affiliate form appears in all categories of user profile information"
 -- #820052 by AlexisWilke: "E_ALL in link with Actions (CA)"
 -- Refined the way we enter order comments (on commission add/remove)
--- #791966 by darktygur & bojnaz: "Set a default affiliate link type"
+-- #791966 by darktygur & bojanz: "Set a default affiliate link type"
+-- Fixed the exclusion of products (by setting the commission to "0")
 
 Version 2.5
 *************

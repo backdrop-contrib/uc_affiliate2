@@ -1394,6 +1394,11 @@ function uc_affiliate2_get_product_commission($account, $nid, $model = '') {
   while ($product_commission = db_fetch_object($result)) {
     if (empty($product_commission->model) || $product_commission->model == $model) {
       $product_commission->commission_structure = unserialize($product_commission->commission_structure);
+      
+      if (count($product_commission->commission_structure) == 1 && $product_commission->commission_structure[0] == '0') {
+        $product_commission->commission_structure = 0;
+      }
+      
       switch ($product_commission->rule) {
         case 'user':
           if ($account->uid == $product_commission->rule_match) {
