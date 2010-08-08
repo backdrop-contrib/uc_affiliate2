@@ -124,7 +124,7 @@ function uc_affiliate2_menu() {
   // $conf['uc_affiliate2_path'] = 'my_affiliate_path'
   // in the site's settings.php file
   $items[variable_get('uc_affiliate2_path', 'affiliate')] = array(
-    'page callback' => 'uc_affiliate2_click',
+    'page callback' => 'uc_affiliate2_click_callback',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK
   );
@@ -290,15 +290,14 @@ function _uc_affiliate2_user_access($account, $mode = '') {
   return $access;
 }
 
-
 /**
  * Implementation of hook_init().
- * This function sets $_SESSION['affiliate'] and increments click count
  */
 function uc_affiliate2_init() {
   require_once drupal_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.ca.inc';
-
-  uc_affiliate2_click();
+  
+  _uc_affiliate2_handle_cookie();
+  _uc_affiliate2_handle_request();
 }
 
 /**
@@ -630,7 +629,7 @@ function uc_affiliate2_order($op, $order, $status) {
       db_query('INSERT INTO {uc_affiliate2_orders} (aid, order_id) VALUES (%d, %d)', $affiliate, $order->order_id);
     }
   }
-  else if($op == 'delete') {
+  elseif($op == 'delete') {
     db_query("DELETE FROM {uc_affiliate2_orders} WHERE order_id = %d", $order->order_id);
   }
 
@@ -692,7 +691,7 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
     if (isset($product->data['affiliate'])) {
       $aff = $product->data['affiliate'];
     }
-    else if (empty($affiliate_id)) {
+    elseif (empty($affiliate_id)) {
       continue;
     }
     else {
@@ -1078,59 +1077,55 @@ function _uc_affiliate2_get_domain() {
 }
 
 /**
- * Records affiliate ID in the user session and counts the click.
+ * Callback for the affiliate url (affiliate/$affiliate_uid).
+ * Tries to register the click, then redirects to the frontpage (or destination, if given)
  */
-function uc_affiliate2_click($username = 0) {
-  // where should we redirect to, if all this is a success
-  $num_args = func_num_args();
-  $goto = '<front>';
-
-  if ($num_args > 1) {
-    $args = func_get_args();
-    unset($args[0]);
-
-    $goto = join('/', $args);
+function uc_affiliate2_click_callback($affiliate_uid) {
+  if (is_numeric($affiliate_uid)) { // regular (affiliate/$affiliate_uid)
+    $account = user_load(array('uid' => $affiliate_uid));
   }
-  else if (arg(0) != variable_get('uc_affiliate2_path', 'affiliate')) {
-    // fix for the ?a= affiliate links (without this, node/3?a=4 will go to the homepage, and not to node/3)
-    $goto = $_GET['q'];
+  elseif (is_string($affiliate_uid)) { // old url's (affiliate/$username),
+    $account = user_load(array('name' => $affiliate_uid));
   }
-
-  // There are some case where you want to use the destination query like in
-  // cart_links module where you direct to one url to perform an action and
-  // use the ?destination= argument to define the actual destination url.
-  if (isset($_REQUEST['destination'])) {
-    $goto .= '?destination='. $_REQUEST['destination'];
-  }
-
-  $found_affiliate = NULL;
-
-  // ready to go, go through all the cases
-  if (is_numeric($username) && $username > 0) { // regular (affiliate/$uid)
-    $found_affiliate = FALSE;
-    $account = user_load(array('uid' => $username));
-
-    if (_uc_affiliate2_clicked($account, $goto)) { // valid, redirect
-      $found_affiliate = TRUE;
+  
+  if ($account && _uc_affiliate2_register_click($account, $goto)) {
+    $num_args = func_num_args();
+    $goto = '<front>';
+  
+    if ($num_args > 1) {
+      $args = func_get_args();
+      unset($args[0]);
+  
+      $goto = join('/', $args);
     }
-  }
-  else if (is_string($username)) { // old url's (affiliate/username,
-    $found_affiliate = FALSE;
-    $account = user_load(array('name' => $username));
-
-    if (_uc_affiliate2_clicked($account, $goto)) { // valid, redirect
-      $found_affiliate = TRUE;
+  
+    // There are some case where you want to use the destination query like in
+    // cart_links module where you direct to one url to perform an action and
+    // use the ?destination= argument to define the actual destination url.
+    if (isset($_REQUEST['destination'])) {
+      $goto .= '?destination='. $_REQUEST['destination'];
     }
+    
+    drupal_goto($goto, null, null, 301);
   }
-  else if (!empty($_REQUEST['a'])) { // ?a=$affiliate
-    $found_affiliate = FALSE;
-    $account = user_load(array('uid' => $_REQUEST['a']));
+  else { // something went wrong
+    $default_url = variable_get('affiliate_invalid_redirect', '<front>');
 
-    if (_uc_affiliate2_clicked($account, $goto)) {
-      $found_affiliate = TRUE;
-    }
+    drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
+    drupal_goto($default_url);
   }
-  else if (!empty($_COOKIE['affiliate']) && empty($_SESSION['affiliate'])) { // repopulate the session from the cookie
+}
+
+/**
+ * Repopulate the affiliate session from an affiliate cookie, if such a cookie is set.
+ *
+ * Also runs a query on the clicks table, confirming that the cookie was accepted
+ * by the client.
+ *
+ * Called from uc_affiliate2_init()
+ */
+function _uc_affiliate2_handle_cookie() {
+  if (!empty($_COOKIE['affiliate']) && empty($_SESSION['affiliate'])) { // repopulate the session from the cookie
     $_SESSION['affiliate'] = $_COOKIE['affiliate']['uid'];
     $_SESSION['affiliate_cookie_timestamp'] = $_COOKIE['affiliate']['timestamp'];
     $_SESSION['affiliate_rid'] = $_COOKIE['affiliate']['rid'];
@@ -1141,16 +1136,78 @@ function uc_affiliate2_click($username = 0) {
     db_query('UPDATE {uc_affiliate2_clicks} SET cookie_status = 2 WHERE click_id = %d', $_COOKIE['affiliate']['update_click']);
     setcookie('affiliate[update_click]', 0, time() - 3600, '/');
   }
+}
 
-  if ($found_affiliate === TRUE) {
-    drupal_goto($goto, null, null, 301);
+/**
+ * Handles the ?a urls (for example, node/20?a=1).
+ *
+ * In contrast to the click menu callback, we don't need to redirect here.
+ *
+ * Called from uc_affiliate2_init().
+ */
+function _uc_affiliate2_handle_request() {
+  if (!isset($_REQUEST['a'])) {
+    return;
   }
-  else if ($found_affiliate === FALSE) { // invalid affiliate id
-    $default_url = variable_get('affiliate_invalid_redirect', '<front>');
+  
+  $account = user_load(array('uid' => $_REQUEST['a']));
+  _uc_affiliate2_register_click($account, $goto);
+}
 
-    drupal_set_message(t('You are attempting to access an affiliate store that does not exist. Please check the address and try again.'), 'error');
-    drupal_goto($default_url);
+/**
+ * Registers a click, inserts it into a database, and enters the affiliate uid into the session.
+ *
+ * Of course, it first checks if we already have an affiliate in session, and if the
+ * referenced account is still an affiliate account.
+ *
+ * Also sets the cookie, if that option is enabled.
+ */
+function _uc_affiliate2_register_click($account, $target_path) {
+  global $base_url, $user;
+
+  // We check if the account provided is an affiliate ( not admin or anonymous user)
+  if ($account->uid <= 1 || !user_access('act as affiliate', $account)) {
+    return FALSE;
   }
+
+  // Do we already have an affiliate in session? Do nothing
+  if($_SESSION['affiliate']) {
+    return TRUE;
+  }
+
+  // Get the affiliate role (only the last one)
+  $rid = _uc_affiliate2_get_user_rid($account->roles);
+
+  // Do we need to set the cookie? For how long?
+  $set_cookie = variable_get('affiliate_set_cookie', 0);
+  $time = time();
+
+  if ($set_cookie) {
+    $cookie_lifetime = variable_get('affiliate_cookie_lifetime', '1 year');
+    $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
+
+    setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');
+    setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');
+    setcookie('affiliate[timestamp]', $time, $cookie_lifetime, '/');
+  }
+
+  // store affiliate id in session and increment click count
+  $_SESSION['affiliate'] = $account->uid;
+
+  $target_path = ($target_path == '<front>') ? '' : $target_path;
+
+  db_query("INSERT INTO {uc_affiliate2_clicks} (aid, time, cookie_status, client_ip, referrer, destination)
+              VALUES (%d, %d, %d, '%s', '%s', '%s')",
+                $account->uid, $time, $set_cookie, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_REFERER'], $target_path);
+
+  // If we're setting cookies, also set one so the cookie status for the click can be updated.
+  if ($set_cookie) {
+    // By setting this to the click_id, this exact click can be updated when the cookie comes back.
+    $click_id = db_last_insert_id('uc_affiliate2_clicks', 'click_id');
+    setcookie('affiliate[update_click]', $click_id, $cookie_lifetime, '/');
+  }
+
+  return TRUE;
 }
 
 /**
@@ -1265,57 +1322,6 @@ function _uc_affiliate2_product_commission_rules() {
     'role' => 'User role',
     'user' => 'User'
   );
-}
-
-/**
- *
- */
-function _uc_affiliate2_clicked($account, $target_path) {
-  global $base_url, $user;
-
-  // We check if the account provided is an affiliate ( not admin or anonymous user)
-  if ($account->uid <= 1 || !user_access('act as affiliate', $account)) {
-    return FALSE;
-  }
-
-  // Do we already have an affiliate in session? Do nothing
-  if($_SESSION['affiliate']) {
-    return TRUE;
-  }
-
-  // Get the affiliate role (only the last one)
-  $rid = _uc_affiliate2_get_user_rid($account->roles);
-
-  // Do we need to set the cookie? For how long?
-  $set_cookie = variable_get('affiliate_set_cookie', 0);
-  $time = time();
-
-  if ($set_cookie) {
-    $cookie_lifetime = variable_get('affiliate_cookie_lifetime', '1 year');
-    $cookie_lifetime = strtotime('+ '. $cookie_lifetime);
-
-    setcookie('affiliate[uid]', $account->uid, $cookie_lifetime, '/');
-    setcookie('affiliate[rid]', $rid, $cookie_lifetime, '/');
-    setcookie('affiliate[timestamp]', $time, $cookie_lifetime, '/');
-  }
-
-  // store affiliate id in session and increment click count
-  $_SESSION['affiliate'] = $account->uid;
-
-  $target_path = ($target_path == '<front>') ? '' : $target_path;
-
-  db_query("INSERT INTO {uc_affiliate2_clicks} (aid, time, cookie_status, client_ip, referrer, destination)
-              VALUES (%d, %d, %d, '%s', '%s', '%s')",
-                $account->uid, $time, $set_cookie, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_REFERER'], $target_path);
-
-  // If we're setting cookies, also set one so the cookie status for the click can be updated.
-  if ($set_cookie) {
-    // By setting this to the click_id, this exact click can be updated when the cookie comes back.
-    $click_id = db_last_insert_id('uc_affiliate2_clicks', 'click_id');
-    setcookie('affiliate[update_click]', $click_id, $cookie_lifetime, '/');
-  }
-
-  return TRUE;
 }
 
 function _uc_affiliate2_get_user_rid($user_roles) {
