@@ -474,11 +474,11 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
 
     switch ($mode) {
       case 'csv':
-        $output .= $title .', ';
-        $output .= $price .', ';
-        $output .= '"'. $description .'", ';
+        $output .= $title .',';
+        $output .= $price .',';
+        $output .= '"'. $description .'",';
 
-        $output .= $image .', ';
+        $output .= $image .',';
 
         $output .=  $link ."\n";
       break;
