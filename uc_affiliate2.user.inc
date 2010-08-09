@@ -183,7 +183,7 @@ function _uc_affiliate2_display_products($products) {
   $header[] = array('field' => 'preview', 'data' => t('Preview'));
   $header[] = array('field' => 'code', 'data' => t('Code'));
 
-  if(count($products) < 1) {
+  if (count($products) < 1) {
     return t('No products found.');
   }
 
@@ -279,7 +279,7 @@ function _uc_affiliate2_display_banners() {
   $banners = explode('<', $banners);
   unset($banners[0]);
 
-  if(count($banners) < 1) {
+  if (count($banners) < 1) {
     return;
   }
 
@@ -325,10 +325,11 @@ function uc_affiliate2_commissions($account) {
   $total_sales = 0;
   $total_commission = 0;
   while ($commission = db_fetch_array($result)) {
-    if($commission['uid'] > 0 && user_access('access user profiles')) {
+    if ($commission['uid'] > 0 && user_access('access user profiles')) {
       // $commission['name'] represents the name that you can see when visiting the profile
       $u = l($commission['name'], 'user/'. $commission['uid']);
-    } else {
+    }
+    else {
       // in this case, we only show a number
       if ($commission['uid'] == 0) {
         $u = t('Unknown');
@@ -396,16 +397,19 @@ function uc_affiliate2_clicks($account) {
 
   if ($sort_params[0] == 'date' && $sort_params[1] == 'ASC') {
     ksort($clicks);
-  } elseif ($sort_params[0] == 'date' && $sort_params[1] == 'DESC') {
+  }
+  elseif ($sort_params[0] == 'date' && $sort_params[1] == 'DESC') {
     krsort($clicks);
-  } elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'ASC') {
+  }
+  elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'ASC') {
     asort($clicks);
-  } elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'DESC') {
+  }
+  elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'DESC') {
     arsort($clicks);
   }
 
   $total_clicks = 0;
-  foreach($clicks as $click_date => $clicks_count) {
+  foreach ($clicks as $click_date => $clicks_count) {
     $click_date_end = $click_date + 86399;
     $link = l(date('Y/m/d', $click_date), 'user/' . $account->uid . '/affiliate/clicks/details/' . $click_date . '/' . $click_date_end);
     $rows[] = array($link, $clicks_count);
@@ -571,10 +575,11 @@ function uc_affiliate2_orders($account) {
 
   $total_sales = 0;
   while ($order = db_fetch_array($result)) {
-    if($order['uid'] > 0 && user_access('access user profiles')) {
+    if ($order['uid'] > 0 && user_access('access user profiles')) {
       // $order['name'] represents the name that you can see when visiting the profile
       $u = l($order['name'], 'user/'. $order['uid']);
-    } else {
+    }
+    else {
       // in this case, we only show a number
       if ($order['uid'] == 0) {
         $u = t('Unknown');

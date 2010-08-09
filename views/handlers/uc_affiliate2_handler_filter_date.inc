@@ -40,7 +40,8 @@ class uc_affiliate2_handler_filter_date extends views_handler_filter {
     if (is_numeric($aid)) {
       $start_query = db_query('SELECT time FROM {uc_affiliate2_clicks} WHERE aid = %d ORDER BY time ASC LIMIT 1', $aid);
       $end_query = db_query('SELECT time FROM {uc_affiliate2_clicks} WHERE aid = %d ORDER BY time DESC LIMIT 1', $aid);
-    } else {
+    }
+    else {
       $start_query = db_query('SELECT time FROM {uc_affiliate2_clicks} ORDER BY time ASC LIMIT 1');
       $end_query = db_query('SELECT time FROM {uc_affiliate2_clicks} ORDER BY time DESC LIMIT 1');
     }
@@ -113,7 +114,8 @@ class uc_affiliate2_handler_filter_date extends views_handler_filter {
     if ($this->value['month'] == 'all') {
       $start = mktime(0, 0, 0, 1, 1, $this->value['year']);
       $end = mktime(23, 59, 59, 12, 31, $this->value['year']);
-    } else {
+    }
+    else {
       $start = mktime(0, 0, 0, $this->value['month'], 1, $this->value['year']);
       $end = mktime(23, 59, 59, $this->value['month'] + 1, 0, $this->value['year']);
     }

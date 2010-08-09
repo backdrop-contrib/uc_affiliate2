@@ -30,19 +30,19 @@ function uc_affiliate2_admin_manage() {
 
   $result = db_query("SELECT aid, COUNT(click_id) as clicks FROM {uc_affiliate2_clicks} GROUP BY aid");
 
-  while($count = db_fetch_array($result)) {
+  while ($count = db_fetch_array($result)) {
     $clicks[$count['aid']] = $count['clicks'];
   }
 
   $result = db_query("SELECT aid, COUNT(aid) as users FROM {uc_affiliate2_users} GROUP BY aid");
 
-  while($count = db_fetch_array($result)) {
+  while ($count = db_fetch_array($result)) {
     $users[$count['aid']] = $count['users'];
   }
 
   $result = db_query("SELECT aid, COUNT(aid) as orders FROM {uc_affiliate2_orders} GROUP BY aid");
 
-  while($count = db_fetch_array($result)) {
+  while ($count = db_fetch_array($result)) {
     $orders[$count['aid']] = $count['orders'];
   }
 
@@ -128,7 +128,7 @@ function uc_affiliate2_admin_users($uid) {
 
     // format paid field as link or form
     if ($month_timestamp && $date == $month_timestamp) {
-      $amount = uc_currency_format($amount, false);
+      $amount = uc_currency_format($amount, FALSE);
       $paid = drupal_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, strtotime($date));
     }
     else {
@@ -249,7 +249,7 @@ function uc_affiliate2_commission_settings() {
     '#type' => 'textfield',
     '#title' => t('Default Affiliate Commission Structure'),
     '#description' => t("Sets the default commission structure.  This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy. Commission can either be represented as percentages by adding a '%' symbol after the number or as a fixed amount in the stores currency by a number with no symbol. Example: 5%,4%,2%,2%,1%"),
-    '#default_value' => implode(',', variable_get('affiliate_commission_structure', array('5%','3%','2%','2%','1%'))),
+    '#default_value' => implode(', ', variable_get('affiliate_commission_structure', array('5%', '3%', '2%', '2%', '1%'))),
     '#size' => 40
   );
 
@@ -266,7 +266,7 @@ function uc_affiliate2_commission_settings() {
       '#type' => 'textfield',
       '#title' => t('Affiliate Commission Structure for cookied role: @role', array('@role' => $role)),
       '#description' => t("Sets the commission structure for the role, when the user has returned via cookie. This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy. Commission can either be represented as percentages by adding a '%' symbol after the number or as a fixed amount in the stores currency by a number with no symbol. Example: 5%,4%,2%,2%,1%"),
-      '#default_value' => implode(',', variable_get('affiliate_commission_structure_'. $rid, array('5%','3%','2%','2%','1%'))),
+      '#default_value' => implode(', ', variable_get('affiliate_commission_structure_'. $rid, array('5%', '3%', '2%', '2%', '1%'))),
       '#size' => 40
     );
   }
@@ -280,9 +280,9 @@ function uc_affiliate2_commission_settings() {
 function uc_affiliate2_commission_settings_validate($form, &$form_state) {
   $roles = user_roles(FALSE, 'act as affiliate');
   foreach ($roles as $rid => $role) {
-    $form_state['values']['affiliate_commission_structure_'. $rid] = explode(',', $form_state['values']['affiliate_commission_structure_'. $rid]);
+    $form_state['values']['affiliate_commission_structure_'. $rid] = explode(', ', $form_state['values']['affiliate_commission_structure_'. $rid]);
   }
-  $form_state['values']['affiliate_commission_structure'] = explode(',', $form_state['values']['affiliate_commission_structure']);
+  $form_state['values']['affiliate_commission_structure'] = explode(', ', $form_state['values']['affiliate_commission_structure']);
 }
 
 /**
@@ -642,7 +642,7 @@ function uc_affiliate2_product_commission_form($form_state, $node) {
       '#value' => $rules[$product_commission->rule]
     );
     if (!empty($product_commission->rule_match)) {
-      switch($product_commission->rule) {
+      switch ($product_commission->rule) {
         case 'user':
           $account = user_load($product_commission->rule_match);
           $form['product_commissions'][$pcid]['match'] = array(
@@ -658,7 +658,7 @@ function uc_affiliate2_product_commission_form($form_state, $node) {
       }
     }
     $form['product_commissions'][$pcid]['commission_structure'] = array(
-      '#value' => implode(',', $product_commission->commission_structure)
+      '#value' => implode(', ', $product_commission->commission_structure)
     );
     $form['product_commissions'][$pcid]['model'] = array(
       '#value' => empty($product_commission->model) ? t('Any') : $product_commission->model
@@ -688,7 +688,7 @@ function uc_affiliate2_product_commission_form_submit($form, &$form_state) {
     $comm = new stdClass();
     $comm->nid = $nid;
     $comm->model = $form_state['values']['product_commissions']['new']['model'];
-    $comm->commission_structure = explode(',', $form_state['values']['product_commissions']['new']['commission_structure']);
+    $comm->commission_structure = explode(', ', $form_state['values']['product_commissions']['new']['commission_structure']);
     $comm->rule = $form_state['values']['product_commissions']['new']['rule'];
     $comm->rule_match = $form_state['values']['match'];
     if ($comm->rule == 'user') {
@@ -749,7 +749,7 @@ function _uc_affiliate2_ahah_product_commissions_match($form_state) {
   }
 
   $output = _uc_affiliate2_ahah_render($form, 'match');
-  print drupal_to_js(array('data' => $output, 'status' => true));
+  print drupal_to_js(array('data' => $output, 'status' => TRUE));
 }
 
 /*

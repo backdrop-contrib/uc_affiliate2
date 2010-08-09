@@ -1,10 +1,10 @@
 ; $Id$
-name = Affiliate2
+name = Ubercart Affiliate v2
 description = Tracks affiliate site orders and commissions.
 dependencies[] = uc_store
 dependencies[] = uc_order
 dependencies[] = uc_product
-dependencies[] = uc_price
+dependencies[] = uc_views
 dependencies[] = views
 package = Ubercart - extra
 core = 6.x
