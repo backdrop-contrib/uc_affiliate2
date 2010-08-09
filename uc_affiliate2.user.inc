@@ -351,7 +351,6 @@ function uc_affiliate2_commissions($account) {
   $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales), uc_currency_format($total_commission));
 
   $output = theme('table', $header, $rows);
-  $output .= drupal_get_form('uc_affiliate2_time_selection_form');
 
   return $output;
 }
@@ -397,11 +396,11 @@ function uc_affiliate2_clicks($account) {
 
   if ($sort_params[0] == 'date' && $sort_params[1] == 'ASC') {
     ksort($clicks);
-  } else if ($sort_params[0] == 'date' && $sort_params[1] == 'DESC') {
+  } elseif ($sort_params[0] == 'date' && $sort_params[1] == 'DESC') {
     krsort($clicks);
-  } else if ($sort_params[0] == 'clicks' && $sort_params[1] == 'ASC') {
+  } elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'ASC') {
     asort($clicks);
-  } else if ($sort_params[0] == 'clicks' && $sort_params[1] == 'DESC') {
+  } elseif ($sort_params[0] == 'clicks' && $sort_params[1] == 'DESC') {
     arsort($clicks);
   }
 
@@ -418,7 +417,6 @@ function uc_affiliate2_clicks($account) {
   global $pager_total_items;
 
   $output = theme('table', $header, $rows);
-  $output .= drupal_get_form('uc_affiliate2_time_selection_form');
 
   return $output;
 }

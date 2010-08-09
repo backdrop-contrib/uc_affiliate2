@@ -704,7 +704,7 @@ function uc_affiliate2_product_commission_form_submit($form, &$form_state) {
       // delete this record
       uc_affiliate2_product_commission_delete($pcid);
     }
-    else if (!empty($comm['weight'])) {
+    elseif (!empty($comm['weight'])) {
       // set the weight
       db_query("UPDATE {uc_affiliate2_product_commission} set weight = %d WHERE pcid = %d", $comm['weight'], $pcid);
     }

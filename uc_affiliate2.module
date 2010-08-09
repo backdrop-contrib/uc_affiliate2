@@ -1,7 +1,6 @@
 <?php
 // $Id$
 
-
 /**
  * @file
  * Tracks affiliate referrals and commissions
@@ -25,10 +24,13 @@ function uc_affiliate2_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_perm()
+ * Implementation of hook_init().
  */
-function uc_affiliate2_perm() {
-  return array('act as affiliate', 'adjust user commissions', 'administer affiliates');
+function uc_affiliate2_init() {
+  require_once drupal_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.ca.inc';
+  
+  _uc_affiliate2_handle_cookie();
+  _uc_affiliate2_handle_request();
 }
 
 /**
@@ -251,6 +253,111 @@ function uc_affiliate2_menu() {
   return $items;
 }
 
+/**
+ * Implementation of hook_perm()
+ */
+function uc_affiliate2_perm() {
+  return array('act as affiliate', 'adjust user commissions', 'administer affiliates');
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function uc_affiliate2_theme() {
+  return array(
+    'uc_affiliate2_columns_checkboxes' => array(
+      'arguments' => array('e' => NULL),
+    ),
+    'uc_affiliate2_product_commission_form_current' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'uc_affiliate2_product_commission_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_user()
+ */
+function uc_affiliate2_user($op, &$edit, &$account, $category = NULL) {
+  global $user;
+  switch ($op) {
+    case 'insert':
+      // update user count for affiliate and associate user with affiliate
+      if ($_SESSION['affiliate']) {
+        db_query('INSERT INTO {uc_affiliate2_users} (aid, uid) VALUES (%d, %d)', $_SESSION['affiliate'], $account->uid);
+
+        $message = t('User !name referred by user id !affiliate', array('!name' => theme('username', $account),
+                                                                        '!affiliate' => theme('placeholder', $_SESSION['affiliate'])
+                                                                        )
+                     );
+
+        watchdog('user', $message);
+      }
+      break;
+    case 'delete':
+      // This account is being deleted. Remove all related affiliate data
+      $parent = db_result(db_query("SELECT aid FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid));
+      
+      /**
+       * If the affiliate has a parent we need to assign his children to his parent
+       */
+      if ($parent) {
+        db_query("DELETE FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid);
+        db_query("UPDATE {uc_affiliate2_users} SET aid = %d WHERE aid = %d", $parent, $account->uid);
+      } else {
+        db_query("DELETE FROM {uc_affiliate2_users} WHERE aid = %d OR uid = %d", $account->uid, $account->uid);  
+      }
+      
+      db_query("DELETE FROM {uc_affiliate2_orders} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_commission} WHERE aid = %d", $account->uid);
+      db_query("DELETE FROM {uc_affiliate2_paid} WHERE aid = %d", $account->uid);
+      break;
+    case 'view':
+      if (user_access('act as affiliate', $account) && $account->uid == $user->uid && $account->uid > 1) {
+        $account->content['affiliate'] = array(
+          '#type' => 'user_profile_category',
+          '#title' => t('Affiliate'),
+          'link' => array(
+            '#type' => 'user_profile_item',
+            '#value' => t('Manage your business ') . l(t('here'), "user/{$account->uid}/affiliate"),
+          ),
+        );
+
+      }
+      break;
+    case 'form':
+      if (user_access('adjust user commissions') && $category == 'account') {
+        $form['commission_settings'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Affiliate Commission Settings'),
+          '#collapsible' => TRUE,
+          '#weight' => 10,
+        );
+
+        $form['commission_settings']['commission'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Commission'),
+          '#default_value' => $edit['commission'],
+          '#description' => t('The commission percentage for this user (number only). Leave blank to use either product or global commissions.')
+        );
+      }
+      return $form;
+  }
+}
+
+/**
+* Implementation of hook_views_api().
+*/
+function uc_affiliate2_views_api() {
+  return array(
+    'api' => '2.0',
+    'path' => drupal_get_path('module', 'uc_affiliate2') .'/views',
+  );
+}
+
 function _uc_affiliate2_node_access($node) {
   if (in_array($node->type, module_invoke_all('product_types')) && user_access('administer products')) {
     return TRUE;
@@ -288,16 +395,6 @@ function _uc_affiliate2_user_access($account, $mode = '') {
   }
   
   return $access;
-}
-
-/**
- * Implementation of hook_init().
- */
-function uc_affiliate2_init() {
-  require_once drupal_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.ca.inc';
-  
-  _uc_affiliate2_handle_cookie();
-  _uc_affiliate2_handle_request();
 }
 
 /**
@@ -439,78 +536,6 @@ function _uc_affiliate2_get_amounts($filter, $filter_value, $index) {
   }
 
   return $amounts;
-}
-
-/**
- * Implementation of hook_user()
- */
-function uc_affiliate2_user($op, &$edit, &$account, $category = NULL) {
-  global $user;
-  switch ($op) {
-    case 'insert':
-      // update user count for affiliate and associate user with affiliate
-      $aff = $_SESSION['affiliate'];
-      if ($aff) {
-        db_query('INSERT INTO {uc_affiliate2_users} (aid, uid) VALUES (%d, %d)', $aff, $account->uid);
-
-        $message = t('User !name referred by user id !affiliate', array('!name' => theme('username', $account),
-                                                                        '!affiliate' => theme('placeholder', $aff)
-                                                                        )
-                     );
-
-        watchdog('user', $message);
-      }
-      break;
-    case 'delete':
-      // This account is being deleted. Remove all related affiliate data
-      $parent = db_result(db_query("SELECT aid FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid));
-      
-      /**
-       * If the affiliate has a parent we need to assign his children to his parent
-       */
-      if ($parent) {
-        db_query("DELETE FROM {uc_affiliate2_users} WHERE uid = %d", $account->uid);
-        db_query("UPDATE {uc_affiliate2_users} SET aid = %d WHERE aid = %d", $parent, $account->uid);
-      } else {
-        db_query("DELETE FROM {uc_affiliate2_users} WHERE aid = %d OR uid = %d", $account->uid, $account->uid);  
-      }
-      
-      db_query("DELETE FROM {uc_affiliate2_orders} WHERE aid = %d", $account->uid);
-      db_query("DELETE FROM {uc_affiliate2_clicks} WHERE aid = %d", $account->uid);
-      db_query("DELETE FROM {uc_affiliate2_commission} WHERE aid = %d", $account->uid);
-      db_query("DELETE FROM {uc_affiliate2_paid} WHERE aid = %d", $account->uid);
-      break;
-    case 'view':
-      if (user_access('act as affiliate', $account) && $account->uid == $user->uid && $account->uid > 1) {
-        $account->content['affiliate'] = array(
-          '#type' => 'user_profile_category',
-          '#title' => t('Affiliate'),
-          'link' => array(
-            '#type' => 'user_profile_item',
-            '#value' => t('Manage your business ') . l(t('here'), "user/{$account->uid}/affiliate"),
-          ),
-        );
-
-      }
-      break;
-    case 'form':
-      if (user_access('adjust user commissions') && $category == 'account') {
-        $form['commission_settings'] = array(
-          '#type' => 'fieldset',
-          '#title' => t('Affiliate Commission Settings'),
-          '#collapsible' => TRUE,
-          '#weight' => 10,
-        );
-
-        $form['commission_settings']['commission'] = array(
-          '#type' => 'textfield',
-          '#title' => t('Commission'),
-          '#default_value' => $edit['commission'],
-          '#description' => t('The commission percentage for this user (number only). Leave blank to use either product or global commissions.')
-        );
-      }
-      return $form;
-  }
 }
 
 /*
@@ -798,88 +823,6 @@ function uc_affiliate2_commission_save($comm) {
   uc_order_comment_save($comm->order_id, 0, $comm->commission_notes);
 
   return $comm->commission_id;
-}
-
-/*
- * Period Selection form
- */
-function uc_affiliate2_time_selection_form(&$form_state, $method='') {
-  // Date Setup
-  $dates = _uc_affiliate2_predefined_range(arg(4), false);
-  $dt_first = $dates['start'];
-  $dt_last = $dates['end'];
-
-  // Create the form
-  $form = array();
-  $form['range_display'] = array(
-    '#prefix' => '<p><strong>',
-    '#value' => t('Currently Displaying: ') . date('Y-n-j', $dt_first) . t(' through ') . date('Y-n-j', $dt_last),
-    '#suffix' => '</strong></p>'
-  );
-  $form['time_selector'] = array(
-    '#title' => t('Customize This Report'),
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE
-  );
-  $form['periods'] = array(
-    '#type' => 'value',
-    '#value' => array(t('This Month'), t('Last Month'), t('Last 30 days'), t('Last 60 Days'), t('Last 90 Days'))
-  );
-  $form['time_selector']['period'] = array(
-    '#title' => t('Select a predefined range'),
-    '#type' => 'select',
-    '#options' => $form['periods']['#value'],
-    '#default_value' => arg(4)
-  );
-  $form['time_selector']['use_dates'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Search using date range.'),
-    '#default_value' => arg(5) != 0 ? 1 : 0,
-  );
-  $form['time_selector']['begin_date'] = array(
-    '#prefix' => '<span style="float:left;margin-right:15px;">',
-    '#suffix' => '</span>',
-    '#title' => t('Start Date'),
-    '#type' => 'date',
-    '#description' => t('Select a beginning date.'),
-    '#default_value' => array(
-      'month' => date('n', $dt_first),
-      'day' => date('j', $dt_first),
-      'year' => date('Y', $dt_first)
-      ),
-    '#required' => FALSE
-  );
-  $form['time_selector']['end_date'] = array(
-    '#prefix' => '<span style="float:left;">',
-    '#suffix' => '</span><br class="clearfix"/>',
-    '#title' => t('End Date'),
-    '#type' => 'date',
-    '#description' => t('Select an end date.'),
-    '#default_value' => array(
-      'month' => date('n', $dt_last),
-      'day' => date('j', $dt_last),
-      'year' => date('Y', $dt_last)
-      )
-  );
-  $form['time_selector']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit')
-  );
-  return $form;
-}
-
-function uc_affiliate2_time_selection_form_submit($form, &$form_state) {
-  if ($form_state['values']['use_dates']) {
-    $start_date = mktime(0, 0, 0, $form_state['values']['begin_date']['month'], $form_state['values']['begin_date']['day'], $form_state['values']['begin_date']['year']);
-    $end_date = mktime(23, 59, 59, $form_state['values']['end_date']['month'], $form_state['values']['end_date']['day'], $form_state['values']['end_date']['year']);
-  }
-  else {
-    $start_date = '0';
-    $end_date = '0';
-  }
-  
-  drupal_goto(arg(0) .'/'. arg(1) .'/'. arg(2) .'/'. arg(3) .'/'. $form_state['values']['period'] .'/'. $start_date .'/'. $end_date);
 }
 
 /**
@@ -1445,23 +1388,6 @@ function uc_affiliate2_get_product_commission($account, $nid, $model = '') {
     'nid' => $nid,
     'model' => NULL,
     'commission_structure' => variable_get('affiliate_commission_structure', array('5%','3%','2%','2%','1%')),
-  );
-}
-
-/**
- * Implementation of hook_theme()
- */
-function uc_affiliate2_theme() {
-  return array(
-    'uc_affiliate2_columns_checkboxes' => array(
-      'arguments' => array('e' => NULL),
-    ),
-    'uc_affiliate2_product_commission_form_current' => array(
-      'arguments' => array('form' => NULL),
-    ),
-    'uc_affiliate2_product_commission_form' => array(
-      'arguments' => array('form' => NULL),
-    ),
   );
 }
 

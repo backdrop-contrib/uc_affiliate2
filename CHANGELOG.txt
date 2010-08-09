@@ -1,3 +1,7 @@
+Version 3.0
+***********
+-- Views 3 support (used for all listing pages)
+
 Version 2.6
 ***********
 -- #801304 by darktygur: "Only products with a node type of 'product' ever show up when an affiliate tries to generate links"

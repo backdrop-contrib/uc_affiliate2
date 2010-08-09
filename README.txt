@@ -1,14 +1,4 @@
-This (uc_affiliate2) is a module providing affiliate functionality for Ubercart.
-
-Initial drupal.org version based on code by:
-********************************************
-joe turgeon (http://arithmetric.com)
-jhuckabee
-VitaLife
-thierry_gd (from Drupal affiliate module)
-davegan
-
-The code first used has since then been rewritten.
+This is a module providing affiliate functionality for Ubercart.
 
 Features
 ********
@@ -25,6 +15,9 @@ Token and Conditional Actions integration.
 
 Notes
 *****
+- Requires Views 3 (use the latest dev version)
+- Requires the latest dev version of Ubercart.
+
 - The admin ( user uid: 1) can't be an affiliate
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
