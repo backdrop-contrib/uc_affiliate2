@@ -1190,6 +1190,7 @@ function uc_affiliate2_token_values($type, $object = NULL) {
       }
       break;
     case 'affiliate':
+      $affiliate = $object;
       $account = user_load($affiliate->aid);
       $values['affiliate-uid'] = $account->uid;
       $values['affiliate-name'] = $account->name;
