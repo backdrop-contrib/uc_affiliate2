@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Custom date filter.

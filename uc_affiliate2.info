@@ -1,4 +1,3 @@
-; $Id$
 name = Ubercart Affiliate v2
 description = Tracks affiliate site orders and commissions.
 dependencies[] = uc_store
