@@ -69,7 +69,7 @@ function uc_affiliate2_ca_predicate() {
           'message' => uc_get_message('uc_affiliate2_commission_message'),
           'format' => 1,
         ),
-      )
+      ),
     ),
   );
 
@@ -86,7 +86,10 @@ function uc_affiliate2_ca_condition() {
     '#category' => t('Order: Affiliate2'),
     '#callback' => 'uc_affiliate2_condition_has_affiliate',
     '#arguments' => array(
-      'order' => array('#entity' => 'uc_order', '#title' => t('Order')),
+      'order' => array(
+        '#entity' => 'uc_order',
+        '#title' => t('Order'),
+      ),
     ),
   );
   $conditions['uc_affiliate2_commission_amount'] = array(
@@ -95,7 +98,10 @@ function uc_affiliate2_ca_condition() {
     '#category' => t('Order: Affiliate2'),
     '#callback' => 'uc_affiliate2_condition_commission_amount',
     '#arguments' => array(
-      'affiliate_commission' => array('#entity' => 'uc_affiliate2_commission', '#title' => t('Affiliate Commission')),
+      'affiliate_commission' => array(
+        '#entity' => 'uc_affiliate2_commission',
+        '#title' => t('Affiliate Commission'),
+      ),
     ),
   );
 
@@ -105,7 +111,10 @@ function uc_affiliate2_ca_condition() {
     '#category' => t('Order: Affiliate2'),
     '#callback' => 'uc_affiliate2_condition_affiliate_level',
     '#arguments' => array(
-      'affiliate_commission' => array('#entity' => 'uc_affiliate2_commission', '#title' => t('Affiliate Commission')),
+      'affiliate_commission' => array(
+        '#entity' => 'uc_affiliate2_commission',
+        '#title' => t('Affiliate Commission'),
+      ),
     ),
   );
 
@@ -362,7 +371,7 @@ function uc_affiliate2_action_commission_email_form($form_state, $settings = arr
   // ca_build_email_form() function seems to be incorrectly part of uc_roles so
   // we add this hack to include the uc_roles.ca.inc here.
   module_load_include('inc', 'uc_roles', 'uc_roles.ca');
-  
+
   $settings += array(
     'from' => uc_store_email_from(),
     'addresses' => '[affiliate-email]',
@@ -370,6 +379,6 @@ function uc_affiliate2_action_commission_email_form($form_state, $settings = arr
     'message' => uc_get_message('uc_affiliate2_commission_message'),
     'format' => 1,
   );
-  
+
   return ca_build_email_form($form_state, $settings, array('global', 'order', 'user', 'affiliate'));
 }

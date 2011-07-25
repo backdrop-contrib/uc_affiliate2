@@ -107,7 +107,7 @@ function uc_affiliate2_views_data() {
 function uc_affiliate2_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module', 'uc_affiliate2') .'/views/handlers',
+      'path' => drupal_get_path('module', 'uc_affiliate2') . '/views/handlers',
     ),
     'handlers' => array(
       'uc_affiliate2_handler_field_commission_structure' => array(
