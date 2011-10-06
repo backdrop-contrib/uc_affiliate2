@@ -410,7 +410,7 @@ function uc_affiliate2_form_alter( &$form, &$form_state, $form_id ) {
 
 function uc_affiliate2_commission_submit($form, $form_state) {
   $result = db_query('SELECT commission FROM {uc_affiliate2_user_commission} WHERE uid = :uid', array(':uid' => $form['#user']->uid));
-  if ($result->rowCount() == 0) {
+  if ($result->rowCount() == 0 && !empty($form_state['values']['commission'])) {
     db_insert('uc_affiliate2_user_commission')
     ->fields(array(
       'uid' => $form['#user']->uid,
