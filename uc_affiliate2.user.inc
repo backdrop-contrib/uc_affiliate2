@@ -720,7 +720,7 @@ function uc_affiliate2_orders($account) {
   $total_sales = 0;
   foreach ($result as $order) {
     if ($order->uid > 0 && user_access('access user profiles')) {
-      $u = l($order['name'], 'user/' . $order->uid);
+      $u = l($order->name, 'user/' . $order->uid);
     }
     else {
       // in this case, we only show a number

@@ -17,9 +17,8 @@ define('UC_AFFILIATE2_REPORT_DATE_INTERVAL', '1 month');
 /**
  * Define the affiliate users listing
  */
-function uc_affiliate2_admin_manage() {
-  $user_id = arg(4);
-  if ($user_id && is_numeric($user_id)) {
+function uc_affiliate2_admin_manage($user_id=null) {
+  if ($user_id!=null && is_numeric($user_id)) {
     return uc_affiliate2_admin_users($user_id);
   }
 
@@ -78,7 +77,7 @@ function uc_affiliate2_admin_manage() {
 
   $result = $query->execute();
   $status = array(t('blocked'), t('active'));
-
+  $rows=array();
   foreach ($result as $account) {
     $rows[] = array(
       l($account->name, 'admin/store/settings/affiliate/' . $account->uid),
@@ -102,7 +101,7 @@ function uc_affiliate2_admin_users($uid) {
   // used to determine whether to show the paid form.
   $month_timestamp = arg(5);
 
-  $account = user_load(array('uid' => $uid));
+  $account = user_load($uid);
 
   // setup the table
   $header = array(
@@ -142,7 +141,7 @@ function uc_affiliate2_admin_users($uid) {
     $total_commissions[$mondate] = isset($total_commissions[$mondate]) ? $total_commissions[$mondate] + $rec->commission : $rec->commission;
   }
 
-
+  $rows=array();
   foreach ($total_sales as $date => $sales) {
     $timestamp = strtotime($date);
     $amount = isset($amounts[$timestamp]) ? $amounts[$timestamp] : 0;
@@ -436,11 +435,11 @@ function uc_affiliate2_admin_settings_validate($form, &$form_state) {
 /**
  * Build a monthly report.
  */
-function uc_affiliate2_monthly_report() {
+function uc_affiliate2_monthly_report($month=null) {
   // The month we are viewing. If this is empty, the current month is assumed.
-  $month = arg(5);
-
+  if ($month==null) $month= date(UC_AFFILIATE2_REPORT_DATE_FORMAT);
   $date_start = strtotime($month);
+
   if ($date_start === FALSE || $date_start == -1) { // PHP > 5.1.0 returns FALSE instead of -1
     $month = date(UC_AFFILIATE2_REPORT_DATE_FORMAT);
     $date_start = strtotime($month);

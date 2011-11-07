@@ -706,7 +706,7 @@ function uc_affiliate2_order_view_update_form_submit($form, &$form_state) {
  * Implements of hook_order
  * Tracks affiliate commissions
  */
-function uc_affiliate2_uc_order($op, $order, $status) {
+function uc_affiliate2_uc_order($op, &$order, $status) {
   global $user;
 
   $statuses = variable_get('affiliate_commission_order_statuses', array('completed' => 'completed'));
@@ -758,7 +758,7 @@ function uc_affiliate2_uc_order($op, $order, $status) {
 
   // give commissions
 
-  if ($op == 'update' && $statuses[$status] && !$statuses[$order->order_status]) {
+  if ($op == 'update' && isset($statuses[$status]) && !isset($statuses[$order->order_status])) {
     // Get the affiliate id associated with the order.
     $affiliate = db_query('SELECT aid FROM {uc_affiliate2_orders} WHERE order_id = :order_id', array(':order_id' => $order->order_id))->fetchField();
     // If there was no affiliate, $affiliate will be FALSE at this point.
@@ -766,7 +766,7 @@ function uc_affiliate2_uc_order($op, $order, $status) {
   }
 
   // take commissions ( moving from a "give commissions" status to a one that doesn't have that privillege)
-  if ($op == 'update' && $statuses[$order->order_status] && $status && !$statuses[$status]) {
+  if ($op == 'update' && isset($statuses[$order->order_status]) && $status && !isset($statuses[$status])) {
     uc_affiliate2_remove_commission($order);
   }
 }
@@ -810,7 +810,8 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
     );
 /*    $context['subject']['product'] = $product;
     $context['subject']['node'] = node_load($product->nid);*/
-    $price = uc_currency_format($price_info['price'] * $price_info['qty']);
+//    $price = uc_currency_format($price_info['price'] * $price_info['qty']);
+    $price = $price_info['price'] * $price_info['qty'];
 
     if (isset($product->data['affiliate'])) {
       $aff = $product->data['affiliate'];
@@ -833,7 +834,6 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
   // write commission records
   foreach ($affcom as $affid => $data) {
     $affs = _uc_affiliate2_get_upline_ids($affid);
-
     for ($level = 1; $level <= count($affs); $level++) {
       $aff = $affs[$level -1];
 
@@ -1431,7 +1431,6 @@ function _uc_affiliate2_commission_is_percentage($commission) {
  *   Commission percentate as a value between 0 and 1.
  */
 function _uc_affiliate2_get_commission($aff_id, $level = 1, $nid = 0, $model = '') {
-  global $user;
 
   $account = user_load($aff_id);
 
