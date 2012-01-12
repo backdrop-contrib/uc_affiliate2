@@ -794,16 +794,14 @@ function uc_affiliate2_downline($account, $level = 1) {
   $query = db_select('users', 'u1')
   ->fields('u1', array('uid'));
   $next = 1;
-  for ($i = 1; $i < $level; $i++) {
+  for ($i = 1; $i <= $level; $i++) {
     $next++;
     $query->innerjoin('uc_affiliate2_users', 'au' . $i, 'au' . $i . '.uid = u' . $i . '.uid');
     $query->innerjoin('users', 'u' . $next, 'au' . $i . '.aid = u' . $next . '.uid');
   }
   $query->condition('u1.uid', $account->uid, '=');
-  $result = $query
-  ->extend('PagerDefault')->limit(25)
-  ->extend('TableSort')->orderByHeader($header)
-  ->execute();
+  $query->extend('PagerDefault')->limit(25)->extend('TableSort')->orderByHeader($header);
+  $result = $query->execute();
 
   // create the data rows for our table
   $rows = array();
