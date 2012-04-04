@@ -317,17 +317,17 @@ function uc_affiliate2_user_delete($account) {
   $parent = db_select('uc_affiliate2_users', 'au')
       ->fields('au', array('aid'))
       ->condition('uid', $account->uid, '=')
-      ->execute();
+      ->execute()->fetchField();
   /**
    * If the affiliate has a parent we need to assign his children to his parent
    */
-  if ($parent->countQuery()->execute() > 0 ) {
+  if ($parent) {
     db_delete('uc_affiliate2_users')
         ->condition('uid', $account->uid)
         ->execute();
     db_update('uc_affiliate2')
         ->condition('aid', $account->uid)
-        ->fields('aid', $parent)
+        ->fields(array('aid'), $parent)
         ->execute();
   }
   else {
