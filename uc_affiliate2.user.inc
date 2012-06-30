@@ -389,12 +389,13 @@ function uc_affiliate2_commissions($account) {
   $query->fields( 'u', array('name'));
   $query->condition('aid', $account->uid, '=');
   $query->condition('uco.created', array($dates['start'], $dates['end']), 'BETWEEN' );
+
   $result = $query->execute();
   // $result = db_query($sql, $account->uid, $dates['start'], $dates['end']);
 
   $total_sales = 0;
   $total_commission = 0;
-
+  $rows = array();
   foreach ($result as $commission) {
     if ($commission->uid > 0 && user_access('access user profiles')) {
       // $commission['name'] represents the name that you can see when visiting the profile
@@ -420,9 +421,14 @@ function uc_affiliate2_commissions($account) {
     $total_sales += $commission->order_total;
     $total_commission += $commission->commission;
   }
-  $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales), uc_currency_format($total_commission));
-
-  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  if ($total_commission > 0) {
+    $rows[] = array('', '', '', t('Total:'), uc_currency_format($total_sales), uc_currency_format($total_commission));
+  }
+  $empty_message = t('No commision has been paid for the period starting');
+  $empty_message .= ' ' . format_date($dates['start'], 'custom', 'F d, Y') . ' ';
+  $empty_message .= t('and ending');
+  $empty_message .= ' ' . format_date($dates['end'], 'custom', 'F d, Y');
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'empty' => $empty_message));
 
   return $output;
 }
@@ -731,6 +737,7 @@ function uc_affiliate2_orders($account) {
         $u = t('User #') . $order->uid;
       }
     }
+    $total_sales += $order->order_total;
     $rows[] = array(
       $u,
       $order->order_id,
@@ -798,7 +805,7 @@ function uc_affiliate2_downline($account, $level = 1) {
   // Attach subquery & field
   $query->leftJoin($subquery, 'uc', 'uc.aid = u1.uid');
   $query->addField('uc', 'user_count');
-  
+
   $query->condition('u' . $next . '.uid', $account->uid, '=');
   $query->extend('PagerDefault')->limit(25)->extend('TableSort')->orderByHeader($header);
 
