@@ -1582,21 +1582,21 @@ function uc_affiliate2_autocomplete($string) {
     $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
             FROM {users} u
               INNER JOIN {users_roles} ur ON u.uid = ur.uid
-            WHERE u.uid LIKE ':uid%%' AND ur.rid IN (
+            WHERE u.uid LIKE :uid AND ur.rid IN (
               SELECT r.rid
               FROM {role_permission} r
                 WHERE r.permission LIKE '%act as affiliate%')";
-    $result = db_query($sql, array(':uid' => $string) );
+    $result = db_query($sql, array(':uid' => $string . '%') );
   }
   else {
     $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
               FROM {users} u
               INNER JOIN {users_roles} ur ON u.uid = ur.uid
-              WHERE u.name LIKE ':name%%' AND ur.rid IN (
+              WHERE u.name LIKE :name AND ur.rid IN (
                 SELECT r.rid
                 FROM {role_permission} r
                 WHERE r.permission LIKE '%act as affiliate%')";
-    $result = db_query($sql, array(':name' => $string));
+    $result = db_query($sql, array(':name' => $string . '%'));
   }
   foreach ($result as $obj) {
     $items[$obj->uid] = check_plain($obj->name) . ' [ID: ' . $obj->uid . ']';
