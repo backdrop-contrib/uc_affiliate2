@@ -591,7 +591,7 @@ function uc_affiliate2_order_edit_commissions($form, $form_state, $order_id, $co
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Update commission'),
-    '#suffix' => l(t('Cancel'), uc_referer_uri()),
+    '#suffix' => l(t('Cancel'), 'admin/store/orders/' . $order_id . '/affiliates'),
   );
   return $form;
 }
@@ -619,7 +619,7 @@ function uc_affiliate2_order_remove_commissions($form, $form_state, $order_id, $
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Remove commission'),
-    '#suffix' => l(t('Cancel'), uc_referer_uri()),
+    '#suffix' => l(t('Cancel'), 'admin/store/orders/' . $order_id . '/affiliates'),
   );
 
   return $form;
