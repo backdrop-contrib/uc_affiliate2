@@ -543,16 +543,17 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
     $product->path = isset($product->path) ? $product->path : node_uri($node);
     $link = _uc_affiliate2_url($product->path['path'], $user, array('alias' => TRUE));
 
-    if (empty($product->field_image_cache[0]['filepath'])) {
+    if (empty($product->uc_product_image[$product->language][0]['uri'])) {
       $image = 'N/A';
     }
     else {
-      $image = $GLOBALS['base_url'] . '/' . file_directory_path() . '/' . rawurlencode(basename($product->field_image_cache[0]['filepath']));
+      $image = file_create_url($product->uc_product_image[$product->language][0]['uri']);
     }
 
     $title = check_plain($product->title);
-    //$description = str_replace('"', "'", strip_tags($product->body));
-    $description = '';
+
+    $description = trim($product->body[$product->language][0]['safe_value']);
+
     $context = array(
       'revision' => 'themed',
       'type' => 'product',
@@ -567,11 +568,15 @@ function _uc_affiliate2_get_products($mode, $show = array()) {
       case 'csv':
         $output .= $title . ',';
         $output .= $price . ',';
-        $output .= '"' . $description . '",';
+
+        /*According to RFC 4180 double quotes in CSV should be quoted with double quote
+        * see https://bugs.php.net/bug.php?id=50686
+        **/
+        $output .= '"' . str_replace('"', '""', $description) . '",';
 
         $output .= $image . ',';
-
-        $output .=  $link . "\n";
+        /*According to RFC 4180 line termination should be \r\n and not \n*/
+        $output .=  $link . "\r\n";
         break;
 
       case "html":
