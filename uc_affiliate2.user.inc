@@ -717,7 +717,8 @@ function uc_affiliate2_orders($account) {
   $query->leftjoin('users', 'u', 'uco.uid = u.uid');
   $query->fields('uco')
   ->fields('ao', array('order_id'))
-  ->fields('u', array('name'));
+  ->fields('u', array('name'))
+  ->condition('u.uid', $account->uid);
   $query
   ->extend('TableSort')
   ->orderByHeader($header);
