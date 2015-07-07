@@ -665,6 +665,7 @@ function uc_affiliate2_form_uc_order_view_update_form_alter(&$form, $form_state)
       '#title' => t('Operation'),
       '#options' => array(
         '' => t('Select operation to perform..'),
+        'assign' => t('Assign affiliate to this order.'),
         'credit' => t('Re-apply affiliate commision.'),
         'remove' => t('Remove affiliate commission.'),
       ),
@@ -688,6 +689,17 @@ function uc_affiliate2_order_view_update_form_submit($form, &$form_state) {
   $order = uc_order_load($form_state['values']['order_id']);
 
   switch ($form_state['values']['affiliate_op']) {
+    case 'assign':
+      if (!empty($form_state['values']['affiliate_id'])) {
+        db_delete('uc_affiliate2_orders')->condition('order_id', $order->order_id)->execute();
+        $id = db_insert('uc_affiliate2_orders')
+          ->fields(array(
+            'aid' => $form_state['values']['affiliate_id'],
+            'order_id' => $order->order_id,
+          ))
+          ->execute();
+      }
+      break;
     case 'credit':
       if (empty($form_state['values']['affiliate_id'])) {
         if ($aid = _uc_affiliate2_get_user($order->uid)) {
