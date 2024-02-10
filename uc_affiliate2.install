@@ -177,9 +177,10 @@ function uc_affiliate2_schema() {
         'default' => 'all',
       ),
       'rule_match' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
       ),
       'weight' => array(
         'type' => 'int',
@@ -210,10 +211,50 @@ function uc_affiliate2_schema() {
   return $schema;
 }
 
-function uc_affiliate2_install() {
+/**
+ * Convert setting variables to config.
+ */
+function uc_affiliate2_update_1000() {
+  // Migrate variables to config.
+  $config = config('uc_affiliate2.settings');
+  $config->set('affiliate_banner_template', update_variable_get('affiliate_banner_template'));
+  $config->set('affiliate_text_link_template', update_variable_get('affiliate_text_link_template'));
+  $config->set('affiliate_product_html_template', update_variable_get('affiliate_product_html_template'));
+  $config->set('affiliate_hierarchy_depth', update_variable_get('affiliate_hierarchy_depth'));
+  $config->set('affiliate_commission_structure', update_variable_get('affiliate_commission_structure'));
+  $config->set('affiliate_enable_upline', update_variable_get('affiliate_enable_upline'));
+  $config->set('affiliate_commission_order_statuses', update_variable_get('affiliate_commission_order_statuses'));
+  $config->set('affiliate_invalid_redirect', update_variable_get('affiliate_invalid_redirect'));
+  $config->set('uc_affiliate2_path', update_variable_get('uc_affiliate2_path'));
+  $config->set('affiliate_default_link_type', update_variable_get('affiliate_default_link_type'));
+  $config->set('affiliate_no_commission_payment_methods', update_variable_get('affiliate_no_commission_payment_methods'));
+  $config->set('affiliate_ip_masking', update_variable_get('affiliate_ip_masking'));
+  $config->set('affiliate_set_cookie', update_variable_get('affiliate_set_cookie'));
+  $config->set('affiliate_cookie_lifetime', update_variable_get('affiliate_cookie_lifetime'));
+  $config->set('affiliate_subsequent_order_commissions', update_variable_get('affiliate_subsequent_order_commissions'));
+  
+  $roles = user_roles();
+  foreach ($roles as $role_name => $role) {
+    if (!empty(update_variable_get('affiliate_commission_structure_' . $role_name))) {
+      $config->set('affiliate_commission_structure_' . $role_name, update_variable_get('affiliate_commission_structure_' . $role_name));
+      update_variable_del('affiliate_commission_structure_' . $role_name);
+    }
+  }
+  $config->save();
 
-}
-
-function uc_affiliate2_uninstall() {
-
+  update_variable_del('affiliate_banner_template');
+  update_variable_del('affiliate_text_link_template');
+  update_variable_del('affiliate_product_html_template');
+  update_variable_del('affiliate_hierarchy_depth');
+  update_variable_del('affiliate_commission_structure');
+  update_variable_del('affiliate_enable_upline');
+  update_variable_del('affiliate_commission_order_statuses');
+  update_variable_del('affiliate_invalid_redirect');
+  update_variable_del('uc_affiliate2_path');
+  update_variable_del('affiliate_default_link_type');
+  update_variable_del('affiliate_no_commission_payment_methods');
+  update_variable_del('affiliate_ip_masking');
+  update_variable_del('affiliate_set_cookie');
+  update_variable_del('affiliate_cookie_lifetime');
+  update_variable_del('affiliate_subsequent_order_commissions');
 }

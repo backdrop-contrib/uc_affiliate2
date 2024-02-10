@@ -45,8 +45,8 @@ class uc_affiliate2_handler_filter_date extends views_handler_filter {
       $end_query = db_query('SELECT time FROM {uc_affiliate2_clicks} ORDER BY time DESC LIMIT 1');
     }
 
-    $start = db_result($start_query);
-    $end = db_result($end_query);
+    $start = $start_query->fetchField();
+    $end = $end_query->fetchField();
 
     // no clicks defined
     if (!$start && !$end) {

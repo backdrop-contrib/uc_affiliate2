@@ -1,0 +1,26 @@
+{
+  "_config_name" : "uc_affiliate2.settings",
+  "affiliate_banner_template" : "",
+  "affiliate_text_link_template" : "",
+  "affiliate_product_html_template" : "<div id=\"prodcontain\"><a href=\"[LINK]\"><img src=\"[IMG]\"></a><br /><div id=\"description\">description:</div>[DESCRIPTION]<br /><div id=\"price\">[PRICE]</div></div>",
+  "affiliate_hierarchy_depth" : 5,
+  "affiliate_commission_structure" : [
+    "5%",
+    "3%",
+    "2%",
+    "2%",
+    "1%"
+  ],
+  "affiliate_enable_upline" : 0,
+  "affiliate_commission_order_statuses" : {
+    "completed" : "completed"
+  },
+  "affiliate_invalid_redirect" : "<front>",
+  "uc_affiliate2_path" : "affiliate",
+  "affiliate_default_link_type" : "path",
+  "affiliate_no_commission_payment_methods" : [],
+  "affiliate_ip_masking" : "hide",
+  "affiliate_set_cookie": 0,
+  "affiliate_cookie_lifetime" : "1 year",
+  "affiliate_subsequent_order_commissions" : "none"
+}

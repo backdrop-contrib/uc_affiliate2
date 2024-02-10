@@ -15,10 +15,10 @@ define('UC_AFFILIATE2_REPORT_DATE_FORMAT', 'M-Y');
 define('UC_AFFILIATE2_REPORT_DATE_INTERVAL', '1 month');
 
 /**
- * Define the affiliate users listing
+ * Define the affiliate users listing.
  */
-function uc_affiliate2_admin_manage($user_id=null) {
-  if ($user_id!=null && is_numeric($user_id)) {
+function uc_affiliate2_admin_manage($user_id = NULL) {
+  if (!is_null($user_id) && is_numeric($user_id)) {
     return uc_affiliate2_admin_users($user_id);
   }
 
@@ -65,15 +65,11 @@ function uc_affiliate2_admin_manage($user_id=null) {
     array('data' => t('Orders')),
   );
 
-  $sub_query=db_select('role','r');
-  $sub_query->addField('r','rid');
-  $sub_query->innerJoin('role_permission','p','r.rid = p.rid');
-  $sub_query->condition('p.permission','%act as affiliate%','LIKE');
-
+  $affiliate_roles = array_keys(user_roles(FALSE, 'act as affiliate')); 
   $query = db_select('users','u')->extend('PagerDefault')->extend('TableSort')->orderByHeader($header)->limit(30);
   $query->innerJoin('users_roles','ur','u.uid = ur.uid');
   $query->fields('u',array('uid','name','status','created','access'));
-  $query->condition('ur.rid',$sub_query,'IN');
+  $query->condition('ur.role',$affiliate_roles,'IN');
 
   $result = $query->execute();
   $status = array(t('blocked'), t('active'));
@@ -97,6 +93,9 @@ function uc_affiliate2_admin_manage($user_id=null) {
   return $output;
 }
 
+/**
+ * Display user's sales and commissions.
+ */
 function uc_affiliate2_admin_users($uid) {
   // used to determine whether to show the paid form.
   $month_timestamp = arg(5);
@@ -149,11 +148,12 @@ function uc_affiliate2_admin_users($uid) {
     // format paid field as link or form
     if ($month_timestamp && $date == $month_timestamp) {
       $amount = uc_currency_format($amount, FALSE);
-      $paid = drupal_render(drupal_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, strtotime($date)));
+      $form = backdrop_get_form('uc_affiliate2_admin_users_paid_form', $amount, $uid, strtotime($date));
+      $paid = backdrop_render($form);
     }
     else {
       $amount = uc_currency_format($amount);
-      $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3),arg(4), $date)));
+      $paid = l($amount, implode('/', array(arg(0), arg(1), arg(2), arg(3),arg(4), $date)));
     }
 
     // generate record
@@ -172,6 +172,9 @@ function uc_affiliate2_admin_users($uid) {
   return $output;
 }
 
+/**
+ * Form builder for amount paid.
+ */
 function uc_affiliate2_admin_users_paid_form($form, $form_state, $amount, $uid, $date) {
   $form['amount'] = array(
     '#type' => 'textfield',
@@ -197,6 +200,9 @@ function uc_affiliate2_admin_users_paid_form($form, $form_state, $amount, $uid, 
   return $form;
 }
 
+/**
+ * Validation callback for amount paid form.
+ */
 function uc_affiliate2_admin_users_paid_form_validate($form, &$form_state) {
   $amount = $form_state['values']['amount'];
 
@@ -205,8 +211,11 @@ function uc_affiliate2_admin_users_paid_form_validate($form, &$form_state) {
   }
 }
 
+/**
+ * Submit handler for amount paid form.
+ */
 function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
-  $sign = variable_get('uc_currency_sign', '$');
+  $sign = config_get('uc_store.settings', 'uc_currency_sign');
   $amount = $form_state['values']['amount'];
   $uid = $form_state['values']['uid'];
   $date = $form_state['values']['date'];
@@ -232,34 +241,35 @@ function uc_affiliate2_admin_users_paid_form_submit($form, &$form_state) {
   }
 
   $account = user_load($uid);
-  drupal_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amount), '!user' => theme('username', array('account' => $account)), '@date' => format_date($date, 'custom', 'M Y'))));
+  backdrop_set_message(t('Registered payment of @amount for !user during @date.', array('@amount' => uc_currency_format($amount), '!user' => theme('username', array('account' => $account)), '@date' => format_date($date, 'custom', 'M Y'))));
 
   return 'admin/store/affiliate/' . $uid;
 }
 
 /**
- * Define the banner/link settings form
+ * Define the banner/link settings form.
  */
 function uc_affiliate2_banner_settings($form, &$form_state) {
+  $form['#config'] = 'uc_affiliate2.settings';
   $form['affiliate_banner_template'] = array(
     '#type' => 'textarea',
     '#title' => t('Affiliate Banner Templates'),
     '#description' => t('The IMG tag(s) around which the url of the affiliate is wrapped around. Insert as many as you want.'),
-    '#default_value' => variable_get('affiliate_banner_template', ''),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_banner_template'),
     '#wysiwyg' => FALSE,
   );
   $form['affiliate_text_link_template'] = array(
     '#type' => 'textfield',
     '#title' => t('Affiliate Text Link Template'),
     '#description' => t('The text around which the url of the affiliate is wrapped around. HTML is allowed.'),
-    '#default_value' => variable_get('affiliate_text_link_template', ''),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_text_link_template'),
   );
   $form['affiliate_product_html_template'] = array(
     '#type' => 'textarea',
     '#title' => t('Affiliate Product HTML Template (used for Export)'),
     '#description' => t('When using the html export function in the affiliate panel, this template is used for each product.
                         Allowed placeholders: [LINK], [TITLE], [IMG], [DESCRIPTION], [PRICE].'),
-    '#default_value' => variable_get('affiliate_product_html_template', '<div id="prodcontain"><a href="[LINK]"><img src="[IMG]"></a><br /><div id="description">description:</div>[DESCRIPTION]<br /><div id="price">[PRICE]</div></div>'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_product_html_template'),
     '#wysiwyg' => FALSE,
   );
 
@@ -267,42 +277,53 @@ function uc_affiliate2_banner_settings($form, &$form_state) {
 }
 
 /**
- * Define the commission settings form
+ * Define the commission settings form.
  */
 function uc_affiliate2_commission_settings($form, &$form_state) {
+  $form['#config'] = 'uc_affiliate2.settings';
   $form['affiliate_hierarchy_depth'] = array(
     '#type' => 'textfield',
     '#title' => t('Affiliate hierarchy depth'),
     '#description' => t('Controls the depth to which affiliates referrals and commissions are tracked'),
-    '#default_value' => variable_get('affiliate_hierarchy_depth', 5),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_hierarchy_depth'),
     '#size' => 3,
   );
   $form['affiliate_commission_structure'] = array(
     '#type' => 'textfield',
     '#title' => t('Default Affiliate Commission Structure'),
     '#description' => t("Sets the default commission structure.  This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy. Commission can either be represented as percentages by adding a '%' symbol after the number or as a fixed amount in the stores currency by a number with no symbol. Example: 5%,4%,2%,2%,1%"),
-    '#default_value' => implode(',', variable_get('affiliate_commission_structure', array('5%', '3%', '2%', '2%', '1%'))),
+    '#default_value' => implode(',', config_get('uc_affiliate2.settings', 'affiliate_commission_structure')),
     '#size' => 40,
   );
 
   $roles = user_roles(FALSE, 'act as affiliate');
 
-  foreach ($roles as $rid => $role) {
-    $form['affiliate_settings_role_' . $rid] = array(
+  foreach ($roles as $role_name => $role) {
+    $form['affiliate_settings_role_' . $role_name] = array(
       '#type' => 'fieldset',
       '#title' => t('Settings for @role', array('@role' => $role)),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
-    $form['affiliate_settings_role_' . $rid]['affiliate_commission_structure_' . $rid] = array(
+    $structure_for_role = config_get('uc_affiliate2.settings', 'affiliate_commission_structure_' . $role_name);
+    if (empty($structure_for_role)) {
+      // Set up the default values.
+      $structure_for_role = array(
+        '5%',
+        '3%',
+        '2%',
+        '2%',
+        '1%'
+      );
+    }
+    $form['affiliate_settings_role_' . $role_name]['affiliate_commission_structure_' . $role_name] = array(
       '#type' => 'textfield',
       '#title' => t('Affiliate Commission Structure for cookied role: @role', array('@role' => $role)),
       '#description' => t("Sets the commission structure for the role, when the user has returned via cookie. This should be a comma separated list of number with the first value corresponding to the first level in the hierarchy and each successive value corresponding to the next level in the hierarchy. Commission can either be represented as percentages by adding a '%' symbol after the number or as a fixed amount in the stores currency by a number with no symbol. Example: 5%,4%,2%,2%,1%"),
-      '#default_value' => implode(',', variable_get('affiliate_commission_structure_' . $rid, array('5%', '3%', '2%', '2%', '1%'))),
+      '#default_value' => implode(',', $structure_for_role),
       '#size' => 40,
     );
   }
-
   return system_settings_form($form);
 }
 
@@ -311,21 +332,23 @@ function uc_affiliate2_commission_settings($form, &$form_state) {
  */
 function uc_affiliate2_commission_settings_validate($form, &$form_state) {
   $roles = user_roles(FALSE, 'act as affiliate');
-  foreach ($roles as $rid => $role) {
-    $form_state['values']['affiliate_commission_structure_' . $rid] = explode(',', $form_state['values']['affiliate_commission_structure_' . $rid]);
+  foreach ($roles as $role_name => $role) {
+    $form_state['values']['affiliate_commission_structure_' . $role_name] = explode(',', $form_state['values']['affiliate_commission_structure_' . $role_name]);
   }
   $form_state['values']['affiliate_commission_structure'] = explode(',', $form_state['values']['affiliate_commission_structure']);
 }
 
 /**
- * Define the affiliate admin settings form
+ * Define the affiliate admin settings form.
  */
 function uc_affiliate2_admin_settings($form, &$form_state) {
+  $form['#config'] = 'uc_affiliate2.settings';
+
   $form['affiliate_enable_upline'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable the "Upline" page for affiliates.'),
-    '#description' => t('This page allows the affiliate to see the affiliates above him (if any) in a multilevel setup.'),
-    '#default_value' => variable_get('affiliate_enable_upline', 0),
+    '#description' => t('This page allows the affiliates to see the affiliates above them (if any) in a multilevel setup.'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_enable_upline'),
   );
 
   foreach (uc_order_status_list('general') as $status) {
@@ -334,7 +357,7 @@ function uc_affiliate2_admin_settings($form, &$form_state) {
   $form['affiliate_commission_order_statuses'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Order status'),
-    '#default_value' => variable_get('affiliate_commission_order_statuses', array('completed' => 'completed')),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_commission_order_statuses'),
     '#description' => t('Where in the order status(es) will the commissions be assigned.'),
     '#options' => $statuses,
   );
@@ -342,29 +365,29 @@ function uc_affiliate2_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('On an invalid affiliate URL, redirect to'),
     '#description' => t('When an invalid username is used as an affiliate, the user will be redirected to this URL.'),
-    '#default_value' => variable_get('affiliate_invalid_redirect', ''),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_invalid_redirect'),
   );
 
   $form['affiliate_default_link_type'] = array(
     '#type' => 'radios',
     '#title' => t('Default affiliate link type'),
     '#options' => array(
-      'path' => t('Use a special path (!example)', array('!example' => 'http://example.com/<strong>' . check_plain(variable_get('uc_affiliate2_path', 'affiliate')) . '/123</strong>')),
+      'path' => t('Use a special path (!example)', array('!example' => 'http://example.com/<strong>' . check_plain(config_get('uc_affiliate2.settings', 'uc_affiliate2_path')) . '/123</strong>')),
       'query' => t('Use a query argument (!example)', array('!example' => 'http://example.com/<strong>?a=123</strong>')),
     ),
-    '#default_value' => variable_get('affiliate_default_link_type', 'path'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_default_link_type'),
   );
 
   // Only display this setting if Ubercart Payment is enabled. This prevents a WSOD.
-  if (function_exists('_payment_method_list')) {
-    foreach (_payment_method_list() as $method) {
+  if (function_exists('_uc_payment_method_list')) {
+    foreach (_uc_payment_method_list() as $method) {
       $payment_methods[$method['id']] = $method['name'];
     }
 
     $form['affiliate_no_commission_payment_methods'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Disable commission for these Payment methods'),
-      '#default_value' => variable_get('affiliate_no_commission_payment_methods', array()),
+      '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_no_commission_payment_methods'),
       '#description' => t('You can disable commission for certain Payment methods'),
       '#options' => $payment_methods,
     );
@@ -380,7 +403,7 @@ function uc_affiliate2_admin_settings($form, &$form_state) {
   $form['affiliate_ip_masking'] = array(
     '#type' => 'radios',
     '#title' => t('Mask IP addresses that your affiliates can see'),
-    '#default_value' => variable_get('affiliate_ip_masking', 'hide'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_ip_masking'),
     '#description' => t('To help affiliates determine who bought what, you can show them the IP address of your customers. This can also be a privacy issue. In the US, do not show more than 2 numbers. Choose wisely. The administrator (user 1) is not affected by this option.'),
     '#options' => $ip_masks,
   );
@@ -396,13 +419,13 @@ function uc_affiliate2_admin_settings($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Set the affiliate cookie for the visiting user.'),
     '#description' => t('By setting the cookie, the affiliate gets credited even when no affiliate id is present in links visited.'),
-    '#default_value' => variable_get('affiliate_set_cookie', 0),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_set_cookie'),
   );
   $form['affiliate_cookie_tracking']['affiliate_cookie_lifetime'] = array(
     '#type' => 'textfield',
     '#title' => t('Cookie Lifetime'),
     '#description' => t('How long should the cookie be valid. Strtotime syntax.'),
-    '#default_value' => variable_get('affiliate_cookie_lifetime', '1 year'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_cookie_lifetime'),
   );
   $form['affiliate_cookie_tracking']['affiliate_subsequent_order_commissions'] = array(
     '#type' => 'radios',
@@ -414,17 +437,20 @@ function uc_affiliate2_admin_settings($form, &$form_state) {
       'override' => t('Give commissions to the affiliate associated with the user, but if there is none, fall back on any affiliate cookies that may be present'),
       'exclusive' => t('Only give commissions to an affiliate that is associated with the user'),
     ),
-    '#default_value' => variable_get('affiliate_subsequent_order_commissions', 'none'),
+    '#default_value' => config_get('uc_affiliate2.settings', 'affiliate_subsequent_order_commissions'),
   );
 
   return system_settings_form($form);
 }
 
+/**
+ * Validation handler for affiliate admin settings form.
+ */
 function uc_affiliate2_admin_settings_validate($form, &$form_state) {
   $url = $form_state['values']['affiliate_invalid_redirect'];
 
-  if (!empty($url) && ($url != check_url($url) || strpos($url, '://') !== FALSE)) {
-    form_set_error('affiliate_invalid_redirect', t('Please enter a valid Drupal path, without the http and domain parts.'));
+  if (!empty($url) && $url != '<front>' && ($url != check_url($url) || strpos($url, '://') !== FALSE)) {
+    form_set_error('affiliate_invalid_redirect', t('Please enter a valid Backdrop path, without the http and domain parts.'));
   }
 
   if (!strtotime($form_state['values']['affiliate_cookie_lifetime'])) {
@@ -515,10 +541,10 @@ function uc_affiliate2_monthly_report($month=null) {
 
     // format paid field as link or form
     if ($uid_external && is_numeric($uid_external) && $uid == $uid_external) {
-      $paid = drupal_render(drupal_get_form('uc_affiliate2_admin_users_paid_form', ($amounts[$uid]) ? $amounts[$uid] : 0, $uid, $date_start));
+      $paid = backdrop_render(backdrop_get_form('uc_affiliate2_admin_users_paid_form', ($amounts[$uid]) ? $amounts[$uid] : 0, $uid, $date_start));
     }
     else {
-      $paid = l($amount, join('/', array(arg(0), arg(1), arg(2), arg(3), $month, $uid)));
+      $paid = l($amount, implode('/', array(arg(0), arg(1), arg(2), arg(3), $uid, $month)));
     }
 
     $rows[] = array(
@@ -530,8 +556,8 @@ function uc_affiliate2_monthly_report($month=null) {
   }
 
   $output = "<p>" . t("Displaying affiliate sales and commissions for ") . str_replace('-', ' ', $month) . ". ";
-  $output .= t("Show ") . l(t('previous month'), join('/', array(arg(0), arg(1), arg(2), arg(3), arg(4), date(UC_AFFILIATE2_REPORT_DATE_FORMAT, strtotime('-' . UC_AFFILIATE2_REPORT_DATE_INTERVAL, $date_start)))));
-  $output .= t(" or ") . l(t('next month'), join('/', array(arg(0), arg(1), arg(2), arg(3), arg(4), date(UC_AFFILIATE2_REPORT_DATE_FORMAT, $date_end)))) . '.</p>';
+  $output .= t("Show ") . l(t('previous month'), implode('/', array(arg(0), arg(1), arg(2), arg(3), arg(4), date(UC_AFFILIATE2_REPORT_DATE_FORMAT, strtotime('-' . UC_AFFILIATE2_REPORT_DATE_INTERVAL, $date_start)))));
+  $output .= t(" or ") . l(t('next month'), implode('/', array(arg(0), arg(1), arg(2), arg(3), arg(4), date(UC_AFFILIATE2_REPORT_DATE_FORMAT, $date_end)))) . '.</p>';
 
   $output .= theme('table', array('header' => $header, 'rows' => $rows));
 
@@ -539,10 +565,9 @@ function uc_affiliate2_monthly_report($month=null) {
 }
 
 /**
- *
+ * Display affiliate commissions.
  */
 function uc_affiliate2_order_commissions($order_id) {
-
   $query = db_select('uc_affiliate2_commission','ac');
   $query->leftJoin('users','u','u.uid=ac.aid');
   $query->condition('ac.order_id',$order_id,'=');
@@ -596,6 +621,9 @@ function uc_affiliate2_order_edit_commissions($form, $form_state, $order_id, $co
   return $form;
 }
 
+/**
+ * Submit handler for commission edit form.
+ */
 function uc_affiliate2_order_edit_commissions_submit($form, &$form_state) {
   $commission = db_query("SELECT * FROM {uc_affiliate2_commission} WHERE commission_id=:commission_id", array(':commission_id' => $form_state['values']['commission_id']))->fetchObject();
   $commission->commission = $form_state['values']['commission'];
@@ -625,6 +653,9 @@ function uc_affiliate2_order_remove_commissions($form, $form_state, $order_id, $
   return $form;
 }
 
+/**
+ * Submit handler for commission elete form.
+ */
 function uc_affiliate2_order_remove_commissions_submit($form, &$form_state) {
   db_delete('uc_affiliate2_commission')
   ->condition('commission_id', $form_state['values']['commission_id'], '=')
@@ -636,7 +667,7 @@ function uc_affiliate2_order_remove_commissions_submit($form, &$form_state) {
  * Form to associate attributes with products or classes.
  */
 function uc_affiliate2_product_commission_form($form, $form_state, $node) {
-  drupal_add_js('misc/autocomplete.js');
+  backdrop_add_library('system', 'backdrop.autocomplete');
   $form = array(
     '#theme' => 'uc_affiliate2_product_commission_form',
     '#cache' => TRUE,
@@ -647,34 +678,57 @@ function uc_affiliate2_product_commission_form($form, $form_state, $node) {
   );
 
   $num_rules = db_select('uc_affiliate2_product_commission', 'apc')
-    ->condition('apc', array('nid'))
+    ->fields('apc', array('nid'))
     ->countQuery()
-    ->execute();
+    ->execute()->fetchField();
   $num_rules++;
 
   $form['product_commissions']['#theme'] = 'uc_affiliate2_product_commission_form_current';
   $form['product_commissions']['#tree'] = TRUE;
   // add new rule form
   $rules = _uc_affiliate2_product_commission_rules();
+
   $form['product_commissions']['new']['rule'] = array(
     '#type' => 'select',
-    '#options' => array('Add commissions for ...') + $rules,
-    '#ahah' => array(
-      'event' => 'change',
-      'path' => 'uc_affiliate2/ahah/product_commissions_match',
+    '#options' =>$rules,
+    '#title' => t('Add commissions for...'),
+    '#ajax' => array(
+      'callback' => 'uc_affiliate2_ajax',
       'wrapper' => 'product-commission-match',
-      'method' => 'replace',
-      'effect' => 'fade',
-      'progress' => array(
-      ),
     ),
   );
   $form['product_commissions']['new']['match'] = array(
-    '#value' => '<div id="product-commission-match"></div>',
+    '#prefix' => '<div id="product-commission-match">',
+    '#suffix' => '</div>',
   );
+
+  if (!empty($form_state['values']['product_commissions']['new']['rule'])) {
+    switch ($form_state['values']['product_commissions']['new']['rule']) {
+      case 'user':
+        $form['product_commissions']['new']['match']['#type'] = 'textfield';
+        $form['product_commissions']['new']['match']['#title'] = t('User name');
+        $form['product_commissions']['new']['match']['#size'] = 12;
+        $form['product_commissions']['new']['match']['#autocomplete_path'] = 'user/autocomplete';
+        break;
+      case 'role':
+        $roles = user_roles(FALSE, 'act as affiliate');
+        $form['product_commissions']['new']['match']['#type'] = 'select';
+        $form['product_commissions']['new']['match']['#title'] = t('Role');
+        $form['product_commissions']['new']['match']['#options'] = $roles;
+        $form['product_commissions']['new']['match']['#required'] = TRUE;
+        break;
+      default:
+        $form['product_commissions']['new']['match']['#type'] = 'value';
+        $form['product_commissions']['new']['match']['#value'] = 'all';
+    }
+  }
+  else {
+    $form['product_commissions']['new']['match']['#markup'] = '';
+  }
+
   $form['product_commissions']['new']['model'] = array(
     '#type' => 'select',
-    '#options' => uc_product_get_models($node),
+    '#options' => uc_product_get_models($node->nid),
   );
   $form['product_commissions']['new']['commission_structure'] = array(
     '#type' => 'textfield',
@@ -687,7 +741,6 @@ function uc_affiliate2_product_commission_form($form, $form_state, $node) {
   );
 
   // Get commission structure for this product
-  $commission_structure = 0;
   $result = db_query("SELECT * FROM {uc_affiliate2_product_commission} WHERE nid = :nid ORDER BY weight", array(':nid' => $node->nid));
 
   foreach ($result as $product_commission) {
@@ -699,29 +752,28 @@ function uc_affiliate2_product_commission_form($form, $form_state, $node) {
       '#default_value' => $product_commission->weight,
     );
     $form['product_commissions'][$pcid]['rule'] = array(
-      '#value' => $rules[$product_commission->rule],
+      '#markup' => $rules[$product_commission->rule],
     );
     if (!empty($product_commission->rule_match)) {
       switch ($product_commission->rule) {
         case 'user':
           $account = user_load($product_commission->rule_match);
           $form['product_commissions'][$pcid]['match'] = array(
-            '#value' => theme('username', array('account' => $account)),
+            '#markup' => theme('username', array('account' => $account)),
           );
           break;
         case 'role':
-          $role = db_query("SELECT name FROM {role} WHERE rid = :rid", array(':rid' => $product_commission->rule_match))->fetchField();
           $form['product_commissions'][$pcid]['match'] = array(
-            '#value' => $role,
+            '#markup' => user_role_load($product_commission->rule_match)->label,
           );
           break;
       }
     }
     $form['product_commissions'][$pcid]['commission_structure'] = array(
-      '#value' => implode(', ', $product_commission->commission_structure),
+      '#markup' => implode(', ', $product_commission->commission_structure),
     );
     $form['product_commissions'][$pcid]['model'] = array(
-      '#value' => empty($product_commission->model) ? t('Any') : $product_commission->model,
+      '#markup' => empty($product_commission->model) ? t('Any') : $product_commission->model,
     );
     $form['product_commissions'][$pcid]['delete'] = array(
       '#type' => 'checkbox',
@@ -740,46 +792,60 @@ function uc_affiliate2_product_commission_form($form, $form_state, $node) {
   return $form;
 }
 
+/**
+ * Submit handler for associating attributes with products or classes.
+ */
 function uc_affiliate2_product_commission_form_submit($form, &$form_state) {
   $nid = $form_state['values']['nid'];
 
+  $product_commissions = $form_state['values']['product_commissions'];
   // save the new record
-  if ($form_state['values']['product_commissions']['new']['commission_structure'] != '') {
-    $comm = new stdClass();
-    $comm->nid = $nid;
-    $comm->model = $form_state['values']['product_commissions']['new']['model'];
-    $comm->commission_structure = explode(',', $form_state['values']['product_commissions']['new']['commission_structure']);
-    $comm->rule = $form_state['values']['product_commissions']['new']['rule'];
-    $comm->rule_match = $form_state['values']['match'];
-    if ($comm->rule == 'user') {
-      $comm->rule_match = db_query("SELECT uid from {users} where name='%s'", $comm->rule_match)->fetchField();
+  if ($product_commissions['new']['commission_structure'] != '') {
+    $commission = new stdClass();
+    $commission->nid = $nid;
+    $commission->model = $product_commissions['new']['model'];
+    $commission->commission_structure = explode(',', $product_commissions['new']['commission_structure']);
+    $commission->rule = $product_commissions['new']['rule'];
+    $commission->rule_match = $product_commissions['new']['match'];
+    if ($commission->rule == 'user') {
+      $selected_user = user_load_by_name($commission->rule_match);
+      $commission->rule_match = $selected_user->uid;
     }
-    $comm->weight = $form_state['values']['product_commissions']['new']['weight'];
-    uc_affiliate2_product_commission_save($comm);
+    $commission->weight = $product_commissions['new']['weight'];
+    uc_affiliate2_product_commission_save($commission);
   }
 
-  // delete the ones that have been checked.
-  foreach ($form_state['values']['product_commissions'] as $pcid => $comm) {
+  // Delete the ones that have been checked.
+  unset($product_commissions['new']);
+  foreach ($product_commissions as $pcid => $comm) {
     if ($comm['delete'] == 1) {
-      // delete this record
+      // Delete this record.
       uc_affiliate2_product_commission_delete($pcid);
     }
     elseif (!empty($comm['weight'])) {
-      // set the weight
+      // Set the weight.
       db_update('uc_affiliate2_product_commission')
         ->fields(array(
           'weight'=>$comm['weight'],
-          'pcid'=>$pcid
         ))
+        ->condition('pcid', $pcid)
         ->execute();
     }
   }
 }
 
 
+/**
+ * Ajax form callback.
+ */
+function uc_affiliate2_ajax($form, $form_state) {
+  return $form['product_commissions']['new']['match'];
+}
 
 /**
- *
+ * Ajax callback.
+ * 
+ * TODO: Convert this to a proper AJAX callback.
  */
 function uc_affiliate2_ahah($context) {
   $func = '_uc_affiliate2_ahah_' . $context;
@@ -791,7 +857,9 @@ function uc_affiliate2_ahah($context) {
 }
 
 /**
- *
+ * AJAX callback
+ * 
+ * TODO: Convert to proper AJAX callback.
  */
 function _uc_affiliate2_ahah_product_commissions_match($form_state) {
   switch ($form_state['values']['product_commissions']['new']['rule']) {
@@ -814,7 +882,7 @@ function _uc_affiliate2_ahah_product_commissions_match($form_state) {
   }
 
   $output = _uc_affiliate2_ahah_render($form, 'match');
-  print drupal_json_encode(array('data' => $output, 'status' => TRUE));
+  print backdrop_json_encode(array('data' => $output, 'status' => TRUE));
 }
 
 /*
@@ -826,7 +894,7 @@ function _uc_affiliate2_ahah_render($fields, $name) {
   $form_state = array('submitted' => FALSE);
   $form_build_id = $_POST['form_build_id'];
   // Add the new element to the stored form. Without adding the element to the
-  // form, Drupal is not aware of this new elements existence and will not
+  // form, Backdrop is not aware of this new elements existence and will not
   // process it. We retreive the cached form, add the element, and resave.
   $form = form_get_cache($form_build_id, $form_state);
   $form[$name] = $fields;
@@ -840,7 +908,5 @@ function _uc_affiliate2_ahah_render($fields, $name) {
 
   // Render the new output.
   $new_form = $form[$name];
-  return drupal_render($new_form);
+  return backdrop_render($new_form);
 }
-
-

@@ -100,26 +100,6 @@ function uc_affiliate2_views_data() {
   return $data;
 }
 
-
-/**
- * Implementation of hook_views_handlers().
- */
-function uc_affiliate2_views_handlers() {
-  return array(
-    'info' => array(
-      'path' => drupal_get_path('module', 'uc_affiliate2') . '/views/handlers',
-    ),
-    'handlers' => array(
-      'uc_affiliate2_handler_field_commission_structure' => array(
-        'parent' => 'views_handler_field',
-      ),
-      'uc_affiliate2_handler_filter_date' => array(
-        'parent' => 'views_handler_filter',
-      ),
-    ),
-  );
-}
-
 /**
  * Implements hook_views_plugins().
  */

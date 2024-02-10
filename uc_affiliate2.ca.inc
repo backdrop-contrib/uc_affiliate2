@@ -212,7 +212,7 @@ function uc_affiliate2_condition_has_affiliate($order, $settings) {
  *
  * @see uc_affiliate2_condition_affiliate_level_form()
  */
-function uc_affiliate2_condition_affiliate_level($affiliate_commision, $settings) {
+function uc_affiliate2_condition_affiliate_level($affiliate_commission, $settings) {
   switch ($settings['affiliate_level_comparison']) {
     case 'less':
       return $affiliate_commission->level < $settings['affiliate_level_value'];
