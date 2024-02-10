@@ -780,7 +780,7 @@ function uc_affiliate2_uc_order($op, &$order, $status) {
 
   if ($op == 'update' && !empty($statuses[$status]) && empty($statuses[$order->order_status])) {
     // Get the affiliate id associated with the order.
-    $affiliate = db_query('SELECT aid FROM {uc_affiliate2_orders} WHERE order_id = :order_id', array(':order_id' => $order->order_id))->fetchField();
+    $affiliate = uc_affiliate2_get_affiliate_id($order->order_id);
     // If there was no affiliate, $affiliate will be FALSE at this point.
     uc_affiliate2_apply_commission($order, $affiliate);
   }
@@ -916,7 +916,7 @@ function uc_affiliate2_remove_commission($order, $affiliate_id = NULL) {
 }
 
 /**
- * Saves a affiliate commission.
+ * Saves an affiliate commission.
  *
  * @param $comm
  *   A commission object.
@@ -934,6 +934,54 @@ function uc_affiliate2_commission_save($comm) {
   uc_order_comment_save($comm->order_id, 0, $comm->commission_notes);
 
   return $comm->commission_id;
+}
+
+/**
+ * Loads an affiliate commission object.
+ * 
+ * @param int $commission_id
+ *  The Commission ID. 
+ * 
+ * @return object
+ *  A commission object.
+ */
+function uc_affiliate2_commission_load($commission_id) {
+  $commissions = uc_affiliate2_commission_load_multiple(array($commission_id));
+  if (isset($commissions[$commission_id])) {
+    return $commissions[$commission_id];
+  }
+}
+
+/**
+ * Loads an array of affiliate commission objects.
+ * 
+ * @param array $commission_ids
+ *  An array of commission IDs.
+ * 
+ * @return array
+ *  An array of commission objects, keyed by commission ID.
+ */
+function uc_affiliate2_commission_load_multiple($commission_ids) {
+  $query = db_select('uc_affiliate2_commission');
+  $query->fields('uc_affiliate2_commission', array())
+        ->condition('commission_id', $commission_ids);
+  return $query->execute()->fetchAllAssoc('commission_id');
+}
+
+/**
+ * Loads a commission for an order_id.
+ * 
+ * @param int $order_id
+ *  The order ID.
+ * 
+ * @return object
+ *  A commission object.
+ */
+function uc_affiliate2_commission_load_from_order($order_id) {
+  $query = db_select('uc_affiliate2_commission');
+  $query->fields('uc_affiliate2_commission', array())
+        ->condition('order_id', $order_id);
+  return $query->execute()->fetchObject();
 }
 
 /**
@@ -1269,84 +1317,6 @@ function _uc_affiliate2_register_click($account, $target_path) {
 }
 
 /**
- * Implements of hook_token_values(). (token.module)
- * 
- * TODO: This hook doesn't exist in Drupal 7 or Backdrop 1.
- */
-function uc_affiliate2_token_values($type, $object = NULL) {
-  $values = array();
-
-  $context = array(
-    'revision' => 'altered',
-    'type' => 'order_product',
-    'subject' => array('order' => $object),
-  );
-
-  switch ($type) {
-    case 'order':
-      $order = $object;
-
-      $values['order-affiliate-commission'] = uc_price(0, $context);
-      $values['order-affiliate-uid'] = '';
-      $values['order-affiliate-name'] = t('No affiliate');
-      $values['order-affiliate-email'] = '';
-
-      $query = db_select('uc_affiliate2_commission', 'ac');
-      $query->innerJoin('users', 'u', 'ac.aid = u.uid');
-      $query->innerJoin('uc_affiliate2_users', 'au', 'au.aid = ac.aid');
-      $affiliate = $query
-      ->fields('u', array('uid', 'name', 'mail'))
-      ->fields('ac', array('commission'))
-      ->condition('ac.order_id', $order->order_id, '=')
-      ->condition('au.uid', $order->uid, '=')
-      ->execute();
-      if (!empty($affiliate)) {
-        $values['order-affiliate-commission'] = uc_price($affiliate->commission, $context);
-        $values['order-affiliate-uid'] = $affiliate->uid;
-        $values['order-affiliate-name'] = $affiliate->name;
-        $values['order-affiliate-email'] = $affiliate->mail;
-      }
-      break;
-    case 'affiliate':
-      $affiliate = $object;
-      $account = user_load($affiliate->aid);
-      $values['affiliate-uid'] = $account->uid;
-      $values['affiliate-name'] = $account->name;
-      $values['affiliate-email'] = $account->mail;
-      $values['affiliate-commission'] = uc_price($affiliate->commission, $context);
-      $values['affiliate-level'] = $affiliate->level;
-      $tokens['affiliate-commissions-url'] = url('user/' . $account->uid . '/affiliate/commissions', array('absolute' => TRUE));
-      break;
-  }
-
-  return $values;
-}
-
-/**
- * Implements of hook_token_list(). (token.module)
- * 
- * TODO: This hook does not exist in Backdrop or Drupal 7.
- */
-function uc_affiliate2_token_list($type = 'all') {
-  $tokens = array();
-  if ($type == 'order' || $type == 'ubercart' || $type == 'all') {
-    $tokens['order']['order-affiliate-commission'] = t('The affiliate commission amount.');
-    $tokens['order']['order-affiliate-uid'] = t('The referring affiliate user ID.');
-    $tokens['order']['order-affiliate-name'] = t('The referring affiliate name.');
-    $tokens['order']['order-affiliate-email'] = t('The referring affiliate email.');
-  }
-  if ($type == 'affiliate' || $type == 'ubercart' || $type == 'all') {
-    $tokens['affiliate']['affiliate-uid'] = t('Affiliate user ID.');
-    $tokens['affiliate']['affiliate-name'] = t('Affiliate username');
-    $tokens['affiliate']['affiliate-email'] = t('Affiliate email');
-    $tokens['affiliate']['affiliate-commission'] = t('Affiliate commission amount.');
-    $tokens['affiliate']['affiliate-level'] = t('Affiliate level.');
-    $tokens['affiliate']['affiliate-commissions-url'] = t('Link to the affiliate commissions.');
-  }
-  return $tokens;
-}
-
-/**
  * Implements of hook_uc_message().
  */
 function uc_affiliate2_uc_message() {
@@ -1589,7 +1559,7 @@ function uc_affiliate2_autocomplete($string) {
 }
 
 /**
- * Retrieve an affiliate order.
+ * Retrieve an affiliate if from an order.
  */
 function uc_affiliate2_get_affiliate_id($order_id){
  return db_query(
