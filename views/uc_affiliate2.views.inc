@@ -18,7 +18,7 @@ function uc_affiliate2_views_data() {
     ),
   );
 
-  $data['uc_affiliate2_commission']['commission_structure'] = array(
+  $data['uc_affiliate2_product_commission']['commission_structure'] = array(
     'title' => t('Product Commission Structure'),
     'help' => t('The product commission structure.'),
     'field' => array(
@@ -63,7 +63,7 @@ function uc_affiliate2_views_data() {
     ),
     'relationship' => array(
       'base' => 'users',
-      'field' => 'uid',
+      'base field' => 'uid',
       'handler' => 'views_handler_relationship',
       'label' => t('Affiliate User'),
     ),
@@ -72,7 +72,7 @@ function uc_affiliate2_views_data() {
     'title' => t('Order Commission'),
     'help' => t('The order affiliate commission structure.'),
     'field' => array(
-      'handler' => 'uc_views_handler_field_money_amount',
+      'handler' => 'uc_order_handler_field_money_amount',
       'click sortable' => TRUE,
       'float' => TRUE,
     ),
@@ -80,14 +80,14 @@ function uc_affiliate2_views_data() {
       'handler' => 'views_handler_sort',
     ),
     'filter' => array(
-      'handler' => 'views_handler_filter_float',
+      'handler' => 'views_handler_filter_numeric',
     ),
   );
   $data['uc_affiliate2_commission']['commission_notes'] = array(
     'title' => t('Order Commission notes'),
     'help' => t('The order affiliate commission notes.'),
     'field' => array(
-      'handler' => 'views_handler_field_string',
+      'handler' => 'views_handler_field',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
@@ -98,19 +98,4 @@ function uc_affiliate2_views_data() {
   );
 
   return $data;
-}
-
-/**
- * Implements hook_views_plugins().
- */
-function uc_affiliate2_views_plugins() {
-  return array(
-    'access' => array(
-      'uc_affiliate2_access' => array(
-        'title' => t('UC Affiliate2: Affiliate Center'),
-        'handler' => 'uc_affiliate2_plugin_access',
-        'uses options' => FALSE,
-      ),
-    ),
-  );
 }

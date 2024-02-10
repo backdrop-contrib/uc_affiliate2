@@ -10,6 +10,9 @@
  */
 class uc_affiliate2_handler_field_commission_structure extends views_handler_field {
   function render($values) {
-    return unserialize($values->uc_affiliate2_product_commission_commission_structure);
+    $value = $this->get_value($values);
+    if (!empty($value)) {
+      return implode(', ', unserialize($value));
+    }
   }
 }

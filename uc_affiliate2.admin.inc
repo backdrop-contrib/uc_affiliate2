@@ -1,6 +1,4 @@
 <?php
-
-
 /**
  * @file
  * Admin functions for uc_affiliate2 module.
@@ -834,79 +832,9 @@ function uc_affiliate2_product_commission_form_submit($form, &$form_state) {
   }
 }
 
-
 /**
  * Ajax form callback.
  */
 function uc_affiliate2_ajax($form, $form_state) {
   return $form['product_commissions']['new']['match'];
-}
-
-/**
- * Ajax callback.
- * 
- * TODO: Convert this to a proper AJAX callback.
- */
-function uc_affiliate2_ahah($context) {
-  $func = '_uc_affiliate2_ahah_' . $context;
-  $form_state['values'] = $_POST;
-  if (function_exists($func)) {
-    $func($form_state);
-  }
-  exit();
-}
-
-/**
- * AJAX callback
- * 
- * TODO: Convert to proper AJAX callback.
- */
-function _uc_affiliate2_ahah_product_commissions_match($form_state) {
-  switch ($form_state['values']['product_commissions']['new']['rule']) {
-    case 'user':
-      $form['match'] = array(
-        '#type' => 'textfield',
-        '#size' => 12,
-        '#autocomplete_path' => 'user/autocomplete',
-      );
-      break;
-    case 'role':
-      $roles = array('Select role ...') + user_roles(FALSE, 'act as affiliate');
-      $form['match'] = array(
-        '#type' => 'select',
-        '#options' => $roles,
-      );
-      break;
-    default:
-      $form['match'] = array('#value' => '');
-  }
-
-  $output = _uc_affiliate2_ahah_render($form, 'match');
-  print backdrop_json_encode(array('data' => $output, 'status' => TRUE));
-}
-
-/*
- * This function is largely based on the poll module, its been simplified for reuse.
- *   $fields is the specific form elements you want to attach via ahah,
- *   $name is the form fields array key... e.g. the name for $form['title'] is "title"
- */
-function _uc_affiliate2_ahah_render($fields, $name) {
-  $form_state = array('submitted' => FALSE);
-  $form_build_id = $_POST['form_build_id'];
-  // Add the new element to the stored form. Without adding the element to the
-  // form, Backdrop is not aware of this new elements existence and will not
-  // process it. We retreive the cached form, add the element, and resave.
-  $form = form_get_cache($form_build_id, $form_state);
-  $form[$name] = $fields;
-  form_set_cache($form_build_id, $form, $form_state);
-  $form += array(
-    '#post' => $_POST,
-    '#programmed' => FALSE,
-  );
-  // Rebuild the form.
-  $form = form_builder($_POST['form_id'], $form, $form_state);
-
-  // Render the new output.
-  $new_form = $form[$name];
-  return backdrop_render($new_form);
 }

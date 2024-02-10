@@ -24,6 +24,7 @@ function uc_affiliate2_autoload_info() {
   return array(
     'uc_affiliate2_handler_filter_date' => 'views/handlers/uc_affiliate2_handler_filter_date.inc',
     'uc_affiliate2_handler_field_commission_structure' => 'views/handlers/uc_affiliate2_handler_field_commission_structure.inc',
+    'uc_affiliate2_views_plugins'
   );
 }
 
@@ -286,9 +287,6 @@ function uc_affiliate2_permission() {
  */
 function uc_affiliate2_theme() {
   return array(
-    'uc_affiliate2_columns_checkboxes' => array(
-      'variables' => array('e' => NULL),
-    ),
     'uc_affiliate2_product_commission_form_current' => array(
       'render element' => 'form',
     ),
@@ -639,7 +637,7 @@ function uc_affiliate2_uc_add_to_cart_data($form_values) {
 /**
  * Implements of hook_form_FORM_ID_alter().
  *
- * Form - uc_order_view_update_form
+ * Adds affiliate functions to the UC order view form.
  */
 function uc_affiliate2_form_uc_order_view_update_form_alter(&$form, $form_state) {
   if (user_access('adjust user commissions')) {
@@ -660,20 +658,34 @@ function uc_affiliate2_form_uc_order_view_update_form_alter(&$form, $form_state)
         'remove' => t('Remove affiliate commission.'),
       ),
     );
+    $aid = uc_affiliate2_get_affiliate_id($form['order_id']['#value']);
+    $user_name_id = user_load($aid)->name . ' [ID: ' . $aid . ']';
+
     $form['affiliate']['affiliate_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Affiliate id or username to credit or remove commissions on'),
       '#description' => t('Leave blank to match any affiliates.'),
-      '#default_value' => uc_affiliate2_get_affiliate_id($form['order_id']['#value']),
+      '#default_value' => $user_name_id,
       '#size' => 20,
       '#autocomplete_path' => 'uc_affiliate2/autocomplete',
     );
+    $form['#validate'][] = 'uc_affiliate2_order_view_update_form_validate';
     $form['#submit'][] = 'uc_affiliate2_order_view_update_form_submit';
   }
 }
 
 /**
- *
+ * Validation for the oprder view form.
+ */
+function uc_affiliate2_order_view_update_form_validate($form, &$form_state) {
+  // Set the aid value from the autocomplete.
+  preg_match('/.*\[ID: (\d+)\]/', $form_state['values']['affiliate_id'], $matches);
+  $aid = $matches[1];
+  form_set_value($form['affiliate']['affiliate_id'], $aid, $form_state);
+}
+
+/**
+ * Submit handler to the order view form.
  */
 function uc_affiliate2_order_view_update_form_submit($form, &$form_state) {
   $order = uc_order_load($form_state['values']['order_id']);
@@ -1367,7 +1379,7 @@ function uc_affiliate2_product_commission_delete($pcid) {
 }
 
 /**
- *
+ * Helper to return the roles for product commissions.
  */
 function _uc_affiliate2_product_commission_rules() {
   return array(
@@ -1377,6 +1389,9 @@ function _uc_affiliate2_product_commission_rules() {
   );
 }
 
+/**
+ * Get the last role name that can act as affiliate.
+ */
 function _uc_affiliate2_get_user_role_name($user_roles) {
   $roles = user_roles(FALSE, 'act as affiliate');
   $roles = array_intersect_assoc($roles, $user_roles);
@@ -1387,7 +1402,7 @@ function _uc_affiliate2_get_user_role_name($user_roles) {
 }
 
 /**
- * Get the affiliate that a user belongs to
+ * Get the affiliate that a user belongs to.
  */
 function _uc_affiliate2_get_user($uid) {
   $aid = db_query('SELECT aid FROM {uc_affiliate2_users} WHERE uid = :uid', array(':uid' => $uid))->fetchField();
@@ -1417,7 +1432,7 @@ function _uc_affiliate2_commission_is_percentage($commission) {
 }
 
 /**
- * Get an affiliates commission percentage for the given level
+ * Get an affiliates commission percentage for the given level.
  *
  * @param $aff_id
  * ID of the affiliate.
@@ -1503,38 +1518,7 @@ function uc_affiliate2_get_product_commission($account, $nid, $model = '') {
 }
 
 /**
- *
- */
-function theme_uc_affiliate2_columns_checkboxes($variables) {
-  $e = $variables['e'];
-  $options = $e['#options'];
-  // Set the default if no columns are given.
-  if (!isset($e['#columns'])) {
-    $e['#columns'] = 8;
-  }
-  // Set the column number if less than the set amount.
-  if (count($options) < $e['#columns']) {
-    $e['#columns'] = count($options);
-  }
-  $rows = array();
-  if (count($options) > 0) {
-    foreach ($options as $key => $value) {
-      $row[] = theme_checkbox($e[$key]);
-      if (count($row) == $e['#columns']) {
-        array_push($rows, $row);
-        $row = array();
-      }
-    }
-  }
-  // This flushes out the columns when the items don't divide evenly into the columns.
-  if (count($row)) {
-    array_push($rows, $row);
-  }
-  return theme('table', array('rows' => $rows));
-}
-
-/**
- *
+ * Theme the product commission table.
  */
 function theme_uc_affiliate2_product_commission_form_current($variables) {
   $form = $variables['form'];
@@ -1583,30 +1567,25 @@ function uc_affiliate2_autocomplete($string) {
   $role_names = array_keys($roles_with_permission);
   $items = array();
   if (is_numeric($string)) {
-    $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
-            FROM {users} u
-              INNER JOIN {users_roles} ur ON u.uid = ur.uid
-            WHERE u.uid LIKE :uid AND ur.role IN :role_names";
-    $result = db_query($sql, array(
-      ':uid' => $string . '%',
-      ':role_names' => $role_names,
-    ));
+    $query = db_select('users');
+    $query->fields('users', array('uid', 'name', 'status', 'created', 'access'));
+    $query->join('users_roles', 'users_roles', 'users.uid = users_roles.uid');
+    $query->condition('users.uid', $string . '%', 'LIKE')
+          ->condition('users_roles.role', $role_names);  
+    $result = $query->execute();
   }
   else {
-    $sql = "SELECT u.uid, u.name, u.status, u.created, u.access
-              FROM {users} u
-              INNER JOIN {users_roles} ur ON u.uid = ur.uid
-              WHERE u.name LIKE :name AND ur.role IN :role_names ";
-    $result = db_query($sql, array(
-      ':name' => $string . '%',
-      ':role_names' => $role_names,
-    ));
+    $query = db_select('users');
+    $query->fields('users', array('uid', 'name', 'status', 'created', 'access'));
+    $query->join('users_roles', 'users_roles', 'users.uid = users_roles.uid');
+    $query->condition('users.name', $string . '%', 'LIKE')
+          ->condition('users_roles.role', $role_names);  
+    $result = $query->execute();
   }
   foreach ($result as $row) {
-    $items[$row->uid] = check_plain($row->name) . ' [ID: ' . $row->uid . ']';
+    $items[check_plain($row->name) . ' [ID: ' . $row->uid . ']'] = check_plain($row->name) . ' [ID: ' . $row->uid . ']';
   }
   backdrop_json_output($items);
-  exit();
 }
 
 /**
