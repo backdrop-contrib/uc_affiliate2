@@ -398,7 +398,9 @@ function uc_affiliate2_form_alter( &$form, &$form_state, $form_id ) {
     );
 
     $form['commission_settings']['commission'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
+      '#max' => 100,
       '#title' => t('Commission'),
       '#default_value' => isset($form['#user']->commission) ? $form['#user']->commission : '',
       '#description' => t('The commission percentage for this user (number only). Leave blank to use either product or global commissions.'),
