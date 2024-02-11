@@ -876,7 +876,7 @@ function uc_affiliate2_apply_commission($order, $affiliate_id = NULL) {
       // data field is not saved, but used in CA
       $comm->data = $data;
 
-      //ca_pull_trigger('uc_affiliate2_apply_commission', $order, $comm); //no more needed has to be integrated with rules
+      rules_invoke_event('uc_affiliate2_apply_commission', $comm, $order);
       if ($comm->commission > 0) {
         uc_affiliate2_commission_save($comm);
       }
@@ -1321,7 +1321,7 @@ function _uc_affiliate2_register_click($account, $target_path) {
  */
 function uc_affiliate2_uc_message() {
   $messages['uc_affiliate2_commission_subject'] = t('[store:name]: Affiliate Commission received');
-  $messages['uc_affiliate2_commission_message'] = t("Hi [affiliate-name], \n\nCongratulations, an affiliate commission has been credited to your account.\n\nYou can see full details from your affiliate center: [affiliate-commissions-url].\n\nThanks again, \n\n[store-name]\n[site-slogan]");
+  $messages['uc_affiliate2_commission_message'] = t("Hello, [uc_affiliate2_commission:affiliate:name]. \n\nCongratulations! An affiliate commission has been credited to your account.\n\nYou can see full details from your affiliate center: [uc_affiliate2_commission:url].\n\nThanks again, \n\n[store:name]\n[site:slogan]");
 
   return $messages;
 }
@@ -1364,9 +1364,9 @@ function _uc_affiliate2_product_commission_rules() {
  */
 function _uc_affiliate2_get_user_role_name($user_roles) {
   $roles = user_roles(FALSE, 'act as affiliate');
+  $roles = array_keys($roles);
   $roles = array_intersect_assoc($roles, $user_roles);
-  $role_names = array_keys($roles);
-  $role_name = end($role_names);
+  $role_name = end($roles);
 
   return $role_name;
 }
@@ -1569,4 +1569,11 @@ function uc_affiliate2_get_affiliate_id($order_id){
   array(
     ':order_id' => $order_id
   ))->fetchField();
+}
+
+/**
+ * Load the affiliate account.
+ */
+function uc_affiliate2_affiliate_load($commission) {
+  return user_load($commission->aid);
 }
