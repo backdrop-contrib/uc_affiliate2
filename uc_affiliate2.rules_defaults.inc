@@ -11,7 +11,7 @@ function uc_affiliate2_default_rules_configuration() {
     // Setup a default configuration for customer checkout notifications.
   $rule = rules_reaction_rule();
   $rule->label = t('E-mail affiliate on new commission');
-  $rule->active = TRUE;
+  $rule->active = FALSE;
   $rule->event('uc_affiliate2_apply_commission')
     ->condition('uc_affiliate2_condition_commission_amount', array(
       'commission:select' => 'uc_affiliate2_commission:commission',
