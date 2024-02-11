@@ -18,14 +18,10 @@ This module provides affiliate functionality for Ubercart.
 ## Notes
 
 - For use directions and examples, please visit the [module's wiki](https://github.com/backdrop-contrib/uc_affiliate2/wiki) 
-- The admin ( user uid: 1) can't be an affiliate
 - Create a role, give it affiliate permission, and then assign users to that role.
 If you assign two roles with affiliate permissions to a user, bad things happen :)
 - When the user is assigned to multiple roles, the last one with affiliate permissions is taken as the current one.
-- The path for affiliate links defaults to `/affiliate/[uid]`
-  However, this can be overridden by adding the following line:
-  `$conf['uc_affiliate2_path'] = 'my_affiliate_path';`
-  in the site's settings.php file
+- The path for affiliate links defaults to `/affiliate/[UID]`
 
 ## Current maintainer for Backdrop CMS version
 
