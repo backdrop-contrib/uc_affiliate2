@@ -243,7 +243,7 @@ function _uc_affiliate2_display_products($products) {
 function _uc_affiliate2_product_form($form, &$form_state, $products, $account) {
 
   $form['#attached']['js'] = array(
-    backdrop_get_path('module', 'uc_affiliate2') . '/uc_affiliate2.js'
+    backdrop_get_path('module', 'uc_affiliate2') . '/js/uc_affiliate2.js'
   );
 
   $form_state['account'] = $account;
