@@ -32,10 +32,14 @@ If you assign two roles with affiliate permissions to a user, bad things happen 
 
 ## Sponsors
 
-Aaron Schiff (http://www.ecopaper.com/)
-Polish Your Image (http://polishyourimage.com)
-A Mountain Top, LLC (http://amountaintop.com)
-Health Curve, LLC (http://www.myhealthcurve.com) 
+### Backdrop CMS version sponsor:
+- [scitexas.edu](scitexas.edu)
+
+### Drupal version sponsors:
+- Aaron Schiff (http://www.ecopaper.com/)
+- Polish Your Image (http://polishyourimage.com)
+- A Mountain Top, LLC (http://amountaintop.com)
+- Health Curve, LLC (http://www.myhealthcurve.com) 
 
 ## Credits
 
