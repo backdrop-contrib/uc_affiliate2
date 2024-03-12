@@ -186,7 +186,7 @@ function uc_affiliate2_links_export($user) {
 
   $output = '<br />';
   $output .= t('!image is the placeholder image in case none is present.',
-                  array('!image' => '<img src="' . $base_url . '/misc/watchdog-error.png' . '" />'));
+                  array('!image' => '<img src="' . $base_url . '/core/misc/watchdog-error.png' . '" />'));
   $output .= '<br />';
 
   if ($ids[0] == 'all') {
