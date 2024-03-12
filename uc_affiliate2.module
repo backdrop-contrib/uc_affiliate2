@@ -569,7 +569,7 @@ function _uc_affiliate2_get_products($user, $mode, $show = array()) {
         break;
 
       case "html":
-        $image = ($image == 'N/A') ? $GLOBALS['base_url'] . '/misc/watchdog-error.png' : $image;
+        $image = ($image == 'N/A') ? $GLOBALS['base_url'] . '/core/misc/watchdog-error.png' : $image;
         $products[$title] = str_replace(array('[LINK]', '[TITLE]', '[IMG]', '[DESCRIPTION]', '[PRICE]'), array($link, $title, $image, $description, $price), $template);
         break;
     }
